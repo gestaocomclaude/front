@@ -40,9 +40,12 @@ Variaveis publicas para build no Netlify:
 ```text
 VITE_BACKEND_API_BASE_URL=https://apifront.juliaferreiraceo.com.br
 VITE_CHECKOUT_URL=https://pay.hub.la/4d1706OPAXBCYjaXDMWV
+VITE_FRONT_SUBMIT_KEY=valor-fornecido-no-env-local
 ```
 
 Apos resposta `2xx` da API, o front redireciona para `checkout_url` retornado pela API ou para `VITE_CHECKOUT_URL`.
+
+O backend valida o header `x-front-submit-key` contra a variavel server-side `FRONT_SUBMIT_KEY`.
 
 Porta local planejada na VPS:
 
