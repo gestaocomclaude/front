@@ -33,6 +33,10 @@ body {
   font-family: var(--font);
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -787,6 +791,124 @@ mark {
   line-height: 17px;
 }
 
+.lead-modal[hidden] {
+  display: none;
+}
+
+.lead-modal {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: end center;
+  padding: 16px;
+}
+
+.lead-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 20, 19, 0.58);
+}
+
+.lead-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 440px);
+  padding: 28px 20px 22px;
+  border: 1px solid rgba(20, 20, 19, 0.16);
+  border-radius: 16px;
+  background: var(--anthropic-light);
+  color: var(--ink);
+  box-shadow: 0 24px 80px rgba(20, 20, 19, 0.28);
+}
+
+.lead-modal__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid rgba(20, 20, 19, 0.14);
+  border-radius: 50%;
+  background: var(--anthropic-light-gray);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.lead-modal h2 {
+  width: calc(100% - 52px);
+  margin: 0;
+  font-size: 42px;
+  font-weight: 400;
+  line-height: 38px;
+}
+
+.lead-modal p {
+  margin: 16px 0 0;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.lead-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.lead-form label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 13px;
+  text-transform: uppercase;
+}
+
+.lead-form input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid rgba(20, 20, 19, 0.18);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+
+.lead-form input:focus,
+.lead-modal__close:focus-visible {
+  outline: 3px solid rgba(217, 119, 87, 0.38);
+  outline-offset: 2px;
+}
+
+.lead-form__message {
+  min-height: 22px;
+  margin: 0;
+  color: var(--anthropic-green);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.lead-form__message[data-type="error"] {
+  color: #9f321b;
+}
+
+.lead-form__submit {
+  width: 100%;
+  margin-top: 2px;
+}
+
+.lead-form__submit:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
 @keyframes slide-left {
   from {
     transform: translateX(0);
@@ -1070,6 +1192,19 @@ mark {
 
   .brand-track span {
     font-size: 150px;
+  }
+
+  .lead-modal {
+    place-items: center;
+  }
+
+  .lead-modal__panel {
+    padding: 34px 32px 28px;
+  }
+
+  .lead-modal h2 {
+    font-size: 56px;
+    line-height: 50px;
   }
 }
 

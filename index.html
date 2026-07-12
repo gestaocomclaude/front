@@ -9,6 +9,7 @@
       content="Imersão ao vivo para delegar tarefas operacionais do seu negócio para o Claude."
     />
     <link rel="stylesheet" href="/src/styles-opcao-1.css" />
+    <script type="module" src="/src/main.js"></script>
   </head>
   <body class="theme-anthropic">
     <main class="site-shell">
@@ -27,7 +28,7 @@
           você não precisa fazer tudo isso sozinha.
           <mark>o Claude faz por você.</mark>
         </h2>
-        <a class="button hero-button" href="https://pay.hub.la/4d1706OPAXBCYjaXDMWV">quero minha vaga por R$57</a>
+        <a class="button hero-button js-lead-trigger" href="https://pay.hub.la/4d1706OPAXBCYjaXDMWV">quero minha vaga por R$57</a>
       </section>
 
       <section class="offers pain">
@@ -210,7 +211,7 @@
         <p class="systems-foot">
           Pelo preço de um almoço, você aprende a recuperar horas toda semana.
         </p>
-        <a class="button" href="https://pay.hub.la/4d1706OPAXBCYjaXDMWV">quero minha vaga por R$57</a>
+        <a class="button js-lead-trigger" href="https://pay.hub.la/4d1706OPAXBCYjaXDMWV">quero minha vaga por R$57</a>
       </section>
 
       <section class="offers faq">
@@ -264,7 +265,7 @@
           Você precisa aprender a usar o que já existe para trabalhar por você.
           O Claude já está disponível. Falta configurar.
         </p>
-        <a class="button" href="https://pay.hub.la/4d1706OPAXBCYjaXDMWV">quero minha vaga por R$57</a>
+        <a class="button js-lead-trigger" href="https://pay.hub.la/4d1706OPAXBCYjaXDMWV">quero minha vaga por R$57</a>
       </section>
 
       <footer class="brand-footer" aria-label="BASE Júlia Ferreira">
@@ -273,5 +274,30 @@
         </div>
       </footer>
     </main>
+
+    <div class="lead-modal" id="lead-modal" role="dialog" aria-modal="true" aria-labelledby="lead-modal-title" hidden>
+      <div class="lead-modal__backdrop" data-close-modal></div>
+      <div class="lead-modal__panel">
+        <button class="lead-modal__close" type="button" aria-label="Fechar" data-close-modal>×</button>
+        <h2 id="lead-modal-title">Garanta sua vaga</h2>
+        <p>Preencha seus dados para continuar para o checkout.</p>
+        <form class="lead-form" id="lead-form">
+          <label>
+            Nome
+            <input name="name" type="text" autocomplete="name" required />
+          </label>
+          <label>
+            E-mail
+            <input name="email" type="email" autocomplete="email" required />
+          </label>
+          <label>
+            Telefone
+            <input name="phone" type="tel" autocomplete="tel" inputmode="tel" required />
+          </label>
+          <p class="lead-form__message" role="status" aria-live="polite"></p>
+          <button class="button lead-form__submit" type="submit">continuar para o checkout</button>
+        </form>
+      </div>
+    </div>
   </body>
 </html>

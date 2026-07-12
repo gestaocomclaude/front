@@ -29,6 +29,21 @@ A API do front deve ficar separada do front estatico:
 https://apifront.juliaferreiraceo.com.br
 ```
 
+O formulario do front envia `POST` para:
+
+```text
+https://apifront.juliaferreiraceo.com.br/api/leads
+```
+
+Variaveis publicas para build no Netlify:
+
+```text
+VITE_BACKEND_API_BASE_URL=https://apifront.juliaferreiraceo.com.br
+VITE_CHECKOUT_URL=https://pay.hub.la/4d1706OPAXBCYjaXDMWV
+```
+
+Apos resposta `2xx` da API, o front redireciona para `checkout_url` retornado pela API ou para `VITE_CHECKOUT_URL`.
+
 Porta local planejada na VPS:
 
 ```text
