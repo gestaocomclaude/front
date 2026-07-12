@@ -9,7 +9,8 @@ const checkoutUrl =
 const backendApiBaseUrl =
   import.meta.env.VITE_BACKEND_API_BASE_URL ||
   "https://apifront.juliaferreiraceo.com.br";
-const frontSubmitKey = import.meta.env.VITE_FRONT_SUBMIT_KEY || "";
+const frontSubmitKey =
+  import.meta.env.VITE_FRONT_SUBMIT_KEY || "f6e87fcf-5dd5-4437-9c23-b8dee8cc4c8a";
 const leadEndpoint = `${backendApiBaseUrl.replace(/\/$/, "")}/api/leads`;
 
 const modal = document.querySelector("#lead-modal");
