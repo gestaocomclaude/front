@@ -254,7 +254,11 @@ p { margin: 0; }
   .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .module-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
   .fit-grid { grid-template-columns: 1.05fr .95fr; max-width: 980px; }
-  .testimonial-gallery { width: calc(100vw + 240px); margin-left: calc(-1 * clamp(80px, 8vw, 120px)); }
+  .testimonial-gallery {
+    max-width: none;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+  }
   .testimonial-track { display: flex; width: max-content; gap: 18px; animation: v1-testimonials 84s linear infinite; }
   .testimonial-track img, .testimonial-track img:nth-child(n+8) { display: block; width: min(28vw, 360px); max-width: 360px; flex: 0 0 auto; }
   .faq-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
