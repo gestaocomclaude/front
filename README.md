@@ -12,6 +12,7 @@ Landing page estatica em Vite para `https://juliaferreiraceo.com.br`.
 
 - `/`
 - `/opcao-1/`
+- `/imersao-empresa-com-claude-v1/`
 
 ## Checkout
 

@@ -7,6 +7,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, "index.html"),
         opcao1: resolve(__dirname, "opcao-1/index.html"),
+        imersaoV1: resolve(__dirname, "imersao-empresa-com-claude-v1/index.html"),
       },
     },
   },
