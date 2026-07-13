@@ -148,21 +148,34 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase;
   transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
 }
-.button::before { content: "✳"; font-size: 18px; line-height: 1; }
+.button::before {
+  content: "";
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  background: url("/assets/brand/claude-logo.svg") center / contain no-repeat;
+}
 .button:hover { filter: brightness(.98); transform: translateY(-1px); }
 .button:active { transform: translateY(2px); box-shadow: 0 3px 0 rgba(0, 126, 45, .22); }
 .button:focus-visible { outline: 3px solid rgba(206,93,44,.35); outline-offset: 3px; }
 
-.payment-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 16px; color: rgba(92,57,42,.62); font-size: 11px; font-weight: 800; text-transform: lowercase; }
-
 .tag-marquee { overflow: hidden; border-block: 1px solid rgba(126,60,39,.16); background: rgba(238,234,219,.62); }
 .tag-track { display: flex; width: max-content; gap: 30px; padding: 22px 0; animation: v1-marquee 34s linear infinite; }
 .tag-track span { display: inline-flex; align-items: center; gap: 12px; color: var(--v1-ink); font-size: 18px; font-weight: 600; white-space: nowrap; }
-.tag-track span::before { content: "✳"; color: var(--v1-orange-2); font-size: 24px; }
+.tag-track span::before {
+  content: "";
+  display: block;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  background: url("/assets/brand/claude-logo.svg") center / contain no-repeat;
+}
 
 .section { padding: 58px 20px; background: var(--v1-bg); }
 .section > * { max-width: 1200px; margin-inline: auto; }
-.spark { color: var(--v1-orange-2); font-size: 48px; line-height: 1; text-align: center; }
+.spark { display: grid; width: 48px; height: 48px; place-items: center; }
+.spark img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .section h2 { max-width: 720px; margin: 18px auto 0; color: var(--v1-ink); font-size: 29px; font-weight: 800; letter-spacing: -.055em; line-height: 1.02; text-align: center; }
 .copy-stack { display: grid; gap: 18px; max-width: 760px; margin-top: 28px; }
 p { margin: 0; }
@@ -235,7 +248,6 @@ p { margin: 0; }
   .hero-copy h1 { max-width: 620px; font-size: 44px; }
   .hero-copy p { max-width: 520px; font-size: 24px; }
   .button { width: 444px; min-height: 64px; font-size: 16px; }
-  .payment-row { justify-content: flex-start; }
   .section { padding: 86px clamp(80px, 8vw, 120px); }
   .section h2 { font-size: 46px; }
   .copy-stack p, .lead-copy p, .faq-list p, .module-grid p, .fit li, .lead-price, .price-note { font-size: 22px; }
