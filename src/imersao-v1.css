@@ -237,7 +237,7 @@ p { margin: 0; }
   .hero-burst { top: 36px; left: 50%; width: 520px; height: 360px; }
   .hero-media img { right: auto; bottom: 0; left: 50%; width: min(52vw, 690px); }
   .hero-media::after { height: 180px; background: linear-gradient(180deg, rgba(242,228,205,0), var(--v1-bg) 72%); }
-  .hero-logo-lockup { grid-column: 2; grid-row: 1; align-self: end; justify-self: center; margin-bottom: 78px; transform: none; }
+  .hero-logo-lockup { justify-items: start; margin: 0 0 22px; text-align: left; transform: none; }
   .hero-logo-lockup span { font-size: 54px; }
   .hero-logo-lockup strong { font-size: 50px; }
   .hero-logo-lockup small { font-size: 18px; }
