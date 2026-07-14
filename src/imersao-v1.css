@@ -49,7 +49,7 @@ a { color: inherit; text-decoration: none; }
   height: 342px;
   margin: 0 -20px;
   overflow: hidden;
-  background: linear-gradient(180deg, var(--v1-ink-strong) 0%, var(--v1-ink) 64%, var(--v1-bg) 100%);
+  background: var(--v1-bg);
 }
 
 .hero-burst {
@@ -64,12 +64,14 @@ a { color: inherit; text-decoration: none; }
 
 .hero-media img {
   position: absolute;
-  right: -34px;
+  right: auto;
   bottom: -8px;
+  left: 50%;
   z-index: 1;
   width: min(104vw, 420px);
   max-width: none;
   filter: saturate(.9) contrast(.98);
+  transform: translateX(-50%);
 }
 
 .hero-media::after {
@@ -174,7 +176,7 @@ a { color: inherit; text-decoration: none; }
 .copy-stack { display: grid; gap: 18px; max-width: 760px; margin-top: 28px; text-align: center; }
 p { margin: 0; }
 .copy-stack p, .lead-copy p, .faq-list p, .module-grid p, .fit li, .lead-price, .price-note { color: var(--v1-ink); font-size: 18px; font-weight: 500; letter-spacing: -.025em; line-height: 1.32; }
-.highlight-line { display: inline-block; width: fit-content; padding: 2px 5px; background: var(--v1-orange-2); color: var(--v1-ink-strong) !important; font-weight: 800 !important; }
+.highlight-line { display: inline-block; width: fit-content; margin-inline: auto; padding: 2px 5px; background: var(--v1-orange-2); color: var(--v1-ink-strong) !important; font-weight: 800 !important; }
 .dark-section { background: var(--v1-ink-strong); color: #fff6e6; }
 .dark-section h2, .dark-section p, .dark-section li, .dark-section h3, .dark-section .instructor { color: #fff6e6; }
 
@@ -233,7 +235,7 @@ p { margin: 0; }
   .v1-hero { grid-template-columns: minmax(0, 1fr) minmax(420px, 600px); align-items: center; min-height: 746px; padding: 84px clamp(80px, 8vw, 120px) 72px; }
   .hero-media { grid-column: 2; grid-row: 1; width: 100%; height: 560px; margin: 0; border-radius: 0; background: transparent; }
   .hero-burst { top: 70px; left: 50%; width: 560px; height: 400px; }
-  .hero-media img { right: -80px; bottom: 0; width: min(52vw, 690px); }
+  .hero-media img { right: auto; bottom: 0; left: 50%; width: min(52vw, 690px); }
   .hero-media::after { height: 180px; background: linear-gradient(180deg, rgba(242,228,205,0), var(--v1-bg) 72%); }
   .hero-logo-lockup { grid-column: 2; grid-row: 1; align-self: end; margin-bottom: 78px; transform: translateX(-30px); }
   .hero-logo-lockup span { font-size: 54px; }
