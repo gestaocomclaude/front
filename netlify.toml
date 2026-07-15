@@ -2,3 +2,8 @@
   command = "npm run build"
   publish = "dist"
 
+[[redirects]]
+  from = "/"
+  to = "/imersao-empresa-com-claude-v1/"
+  status = 302
+  force = true

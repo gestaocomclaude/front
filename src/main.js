@@ -13,12 +13,65 @@ const frontSubmitKey =
   import.meta.env.VITE_FRONT_SUBMIT_KEY || "f6e87fcf-5dd5-4437-9c23-b8dee8cc4c8a";
 const leadEndpoint = `${backendApiBaseUrl.replace(/\/$/, "")}/api/leads`;
 
+const countdownTimers = document.querySelectorAll("[data-countdown-midnight]");
 const modal = document.querySelector("#lead-modal");
 const form = document.querySelector("#lead-form");
 const message = form?.querySelector(".lead-form__message");
 const submitButton = form?.querySelector(".lead-form__submit");
 const leadTriggers = document.querySelectorAll(".js-lead-trigger");
 let lastFocusedElement = null;
+
+function parseOffsetToMs(offset) {
+  const match = String(offset || "-03:00").match(/^([+-])(\d{2}):(\d{2})$/);
+  if (!match) return -3 * 60 * 60 * 1000;
+
+  const sign = match[1] === "-" ? -1 : 1;
+  const hours = Number(match[2]);
+  const minutes = Number(match[3]);
+  return sign * ((hours * 60 + minutes) * 60 * 1000);
+}
+
+function getNextMidnightForOffset(now, offsetMs) {
+  const shifted = new Date(now.getTime() + offsetMs);
+  const nextLocalMidnightUtc = Date.UTC(
+    shifted.getUTCFullYear(),
+    shifted.getUTCMonth(),
+    shifted.getUTCDate() + 1,
+  );
+
+  return new Date(nextLocalMidnightUtc - offsetMs);
+}
+
+function formatDuration(ms) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+  const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+  return { hours, minutes, seconds, text: `${hours}:${minutes}:${seconds}` };
+}
+
+function updateCountdownTimers() {
+  if (!countdownTimers.length) return;
+
+  const now = new Date();
+
+  countdownTimers.forEach((timer) => {
+    const offsetMs = parseOffsetToMs(timer.dataset.countdownMidnight);
+    const target = getNextMidnightForOffset(now, offsetMs);
+    const duration = formatDuration(target.getTime() - now.getTime());
+    const hours = timer.querySelector("[data-countdown-hours]");
+    const minutes = timer.querySelector("[data-countdown-minutes]");
+    const seconds = timer.querySelector("[data-countdown-seconds]");
+
+    if (hours && minutes && seconds) {
+      hours.textContent = duration.hours;
+      minutes.textContent = duration.minutes;
+      seconds.textContent = duration.seconds;
+    } else {
+      timer.textContent = duration.text;
+    }
+  });
+}
 
 function setMessage(text, type = "info") {
   if (!message) return;
@@ -141,6 +194,11 @@ document.querySelectorAll("[data-close-modal]").forEach((button) => {
 });
 
 form?.addEventListener("submit", submitLead);
+
+if (countdownTimers.length) {
+  updateCountdownTimers();
+  window.setInterval(updateCountdownTimers, 1000);
+}
 
 window.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && modal && !modal.hidden) {
