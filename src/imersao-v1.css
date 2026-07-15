@@ -295,6 +295,7 @@ p { margin: 0; }
 .lead-modal p { margin: 16px 0 0; color: var(--v1-ink); font-size: 16px; line-height: 1.45; }
 .lead-form { display: grid; min-width: 0; gap: 14px; margin-top: 22px; }
 .lead-form label { display: grid; min-width: 0; gap: 8px; font-size: 13px; font-weight: 900; line-height: 1; text-transform: uppercase; }
+.lead-form__website { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .lead-form input { width: 100%; max-width: 100%; min-width: 0; min-height: 48px; padding: 0 14px; border: 1px solid var(--v1-line); border-radius: 12px; background: #fff; color: var(--v1-ink); font: inherit; font-size: 16px; }
 .lead-form__message { min-height: 22px; margin: 0; color: var(--v1-green-dark); font-size: 14px; line-height: 20px; }
 .lead-form__message[data-type="error"] { color: #9f321b; }

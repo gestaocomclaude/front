@@ -16,37 +16,30 @@ Landing page estatica em Vite para `https://juliaferreiraceo.com.br`.
 
 ## Checkout
 
-CTAs principais apontam para:
+Configure a URL de checkout no provedor de deploy usando `VITE_CHECKOUT_URL`.
 
-```text
-https://pay.hub.la/4d1706OPAXBCYjaXDMWV
-```
-
-## API futura
+## API
 
 A API do front deve ficar separada do front estatico:
 
-```text
-https://apifront.juliaferreiraceo.com.br
-```
+Configure a URL publica da API no provedor de deploy usando `VITE_BACKEND_API_BASE_URL`.
 
 O formulario do front envia `POST` para:
 
 ```text
-https://apifront.juliaferreiraceo.com.br/api/leads
+${VITE_BACKEND_API_BASE_URL}/api/leads
 ```
 
-Variaveis publicas para build no Netlify:
+Variaveis publicas para build no provedor de deploy:
 
 ```text
-VITE_BACKEND_API_BASE_URL=https://apifront.juliaferreiraceo.com.br
-VITE_CHECKOUT_URL=https://pay.hub.la/4d1706OPAXBCYjaXDMWV
-VITE_FRONT_SUBMIT_KEY=valor-fornecido-no-env-local
+VITE_BACKEND_API_BASE_URL=
+VITE_CHECKOUT_URL=
 ```
 
 Apos resposta `2xx` da API, o front redireciona para `checkout_url` retornado pela API ou para `VITE_CHECKOUT_URL`.
 
-O backend valida o header `x-front-submit-key` contra a variavel server-side `FRONT_SUBMIT_KEY`.
+Nao use variaveis `VITE_*` para segredos. Tudo que comeca com `VITE_` fica publico no JavaScript final.
 
 Porta local planejada na VPS:
 
@@ -54,12 +47,10 @@ Porta local planejada na VPS:
 127.0.0.1:39183
 ```
 
-CORS deve permitir a origin abaixo. CORS nao valida sub-path, entao qualquer rota dentro desse dominio fica coberta por esta origin:
-
-```text
-https://juliaferreiraceo.com.br
-```
+CORS deve permitir apenas as origins publicas do front. CORS nao valida sub-path, entao qualquer rota dentro do dominio configurado fica coberta por esta origin.
 
 ## Seguranca
 
 Arquivos `.env`, `node_modules`, `dist`, `api` e `infra` nao devem ser enviados ao GitHub.
+
+A seguranca real do formulario deve ficar no backend: validacao de origin, honeypot, rate limit, validacao de campos e credenciais do Supabase somente no servidor.

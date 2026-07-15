@@ -4,13 +4,8 @@ if (prefersReducedMotion.matches) {
   document.documentElement.classList.add("reduce-motion");
 }
 
-const checkoutUrl =
-  import.meta.env.VITE_CHECKOUT_URL || "https://pay.hub.la/4d1706OPAXBCYjaXDMWV";
-const backendApiBaseUrl =
-  import.meta.env.VITE_BACKEND_API_BASE_URL ||
-  "https://apifront.juliaferreiraceo.com.br";
-const frontSubmitKey =
-  import.meta.env.VITE_FRONT_SUBMIT_KEY || "f6e87fcf-5dd5-4437-9c23-b8dee8cc4c8a";
+const checkoutUrl = import.meta.env.VITE_CHECKOUT_URL || "";
+const backendApiBaseUrl = import.meta.env.VITE_BACKEND_API_BASE_URL || "";
 const leadEndpoint = `${backendApiBaseUrl.replace(/\/$/, "")}/api/leads`;
 
 const countdownTimers = document.querySelectorAll("[data-countdown-midnight]");
@@ -81,7 +76,8 @@ function setMessage(text, type = "info") {
 
 function openModal(event) {
   event.preventDefault();
-  if (!modal || !form) {
+  if (!modal || !form || !checkoutUrl || !backendApiBaseUrl) {
+    if (!checkoutUrl) return;
     window.location.assign(checkoutUrl);
     return;
   }
@@ -120,6 +116,7 @@ function buildPayload(formData) {
     name: String(formData.get("name") || "").trim(),
     email: String(formData.get("email") || "").trim().toLowerCase(),
     phone: String(formData.get("phone") || "").trim(),
+    website: String(formData.get("website") || "").trim(),
     product_slug: "empresa-com-claude",
     source: "landing-page",
     page: window.location.pathname,
@@ -145,6 +142,10 @@ async function submitLead(event) {
   if (!form || !submitButton) return;
 
   if (!form.reportValidity()) return;
+  if (!checkoutUrl || !backendApiBaseUrl) {
+    setMessage("Configuracao de checkout indisponivel. Tente novamente em instantes.", "error");
+    return;
+  }
 
   const payload = buildPayload(new FormData(form));
   const originalText = submitButton.textContent;
@@ -157,7 +158,6 @@ async function submitLead(event) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-front-submit-key": frontSubmitKey,
       },
       body: JSON.stringify(payload),
     });

@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/imersao-empresa-com-claude-v1/",
+      "permanent": false
+    }
+  ]
+}
