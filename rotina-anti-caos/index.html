@@ -66,7 +66,9 @@
   .text-input:focus{outline:none;border-color:var(--darkest);}
   textarea.text-input{min-height:110px;resize:vertical;}
   .contact-form{display:flex;flex-direction:column;gap:16px;margin-top:10px;}
+  .contact-field{display:flex;flex-direction:column;gap:10px;}
   .contact-field .text-input,.contact-field .time-select{margin-bottom:0;}
+  .contact-control{width:100%;}
   .phone-composite{
     display:flex;align-items:center;gap:0;width:100%;min-height:56px;background:var(--white);
     border:1.5px solid rgba(0,0,0,0.18);border-radius:14px;overflow:hidden;
@@ -223,6 +225,13 @@
     .phone-country__select{font-size:14px;padding-left:44px;}
     .phone-country__flag{left:12px;}
     .phone-input{padding-inline:12px;}
+  }
+
+  @media(min-width:720px){
+    .contact-form{gap:14px;}
+    .contact-field{display:grid;grid-template-columns:104px minmax(0,1fr);align-items:center;gap:18px;}
+    .contact-field .field-label{margin-bottom:0;}
+    .contact-field .field-error{grid-column:2;margin-top:0;}
   }
 
   /* print */
@@ -736,7 +745,9 @@ function renderIntro(){
   nameInput.placeholder='Digite seu nome...';
   nameInput.value = state.answers.nome || '';
   const nameError = el('p','field-error');
-  nameField.appendChild(nameLabel); nameField.appendChild(nameInput); nameField.appendChild(nameError);
+  const nameControl = el('div','contact-control');
+  nameControl.appendChild(nameInput);
+  nameField.appendChild(nameLabel); nameField.appendChild(nameControl); nameField.appendChild(nameError);
 
   const emailField = el('div','contact-field');
   const emailLabel = el('label','field-label','E-mail');
@@ -749,14 +760,15 @@ function renderIntro(){
   emailInput.placeholder='voce@email.com';
   emailInput.value = state.answers.email || '';
   const emailError = el('p','field-error');
-  emailField.appendChild(emailLabel); emailField.appendChild(emailInput); emailField.appendChild(emailError);
+  const emailControl = el('div','contact-control');
+  emailControl.appendChild(emailInput);
+  emailField.appendChild(emailLabel); emailField.appendChild(emailControl); emailField.appendChild(emailError);
 
   const phoneField = el('div','contact-field');
   const phoneLabel = el('label','field-label','Telefone');
   phoneLabel.htmlFor = 'intro-phone-number';
-  const phoneBody = el('div','');
+  const phoneBody = el('div','contact-control');
   const phoneError = el('p','field-error');
-  const phoneHelp = el('p','field-help','Selecione o país e preencha o telefone. Para Brasil, digite DDD + telefone com 11 dígitos.');
   const phoneComposite = el('div','phone-composite');
 
   const countryWrap = el('div','phone-country');
@@ -834,7 +846,7 @@ function renderIntro(){
   };
 
   drawPhoneInputs();
-  phoneField.appendChild(phoneLabel); phoneField.appendChild(phoneBody); phoneField.appendChild(phoneHelp); phoneField.appendChild(phoneError);
+  phoneField.appendChild(phoneLabel); phoneField.appendChild(phoneBody); phoneField.appendChild(phoneError);
 
   form.appendChild(nameField);
   form.appendChild(emailField);
