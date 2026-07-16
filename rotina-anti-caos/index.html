@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rotina Anti-Caos · Júlia Ferreira</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#f5f5f5;
+    --white:#ffffff;
+    --gold:#c8ad8f;
+    --mid:#896447;
+    --dark:#5f3f30;
+    --darkest:#4d3936;
+    --black:#1a0f0d;
+    --muted:#7a6258;
+    --ok:#5a7a52;
+  }
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Inter',Helvetica,Arial,sans-serif;
+    background:var(--white);
+    color:var(--black);
+    font-size:16px;
+    line-height:1.5;
+  }
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;font-size:16px;}
+  .hidden{display:none!important;}
+
+  /* ── layout shells ───────────────────────── */
+  .app{max-width:640px;margin:0 auto;padding:32px 24px 64px;min-height:100vh;display:flex;flex-direction:column;}
+  .center-screen{flex:1;display:flex;flex-direction:column;justify-content:center;}
+
+  /* ── buttons ─────────────────────────────── */
+  .btn-primary{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--darkest);color:var(--white);border:none;
+    padding:16px 28px;border-radius:999px;font-size:15px;font-weight:700;
+    width:100%;transition:background .2s, transform .1s;
+  }
+  .btn-primary:hover{background:var(--dark);}
+  .btn-primary:active{transform:scale(0.98);}
+  .btn-primary:disabled{background:#d8cfc9;color:#fff;cursor:not-allowed;}
+  .btn-ghost{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    background:transparent;color:var(--darkest);border:1.5px solid rgba(0,0,0,0.15);
+    padding:14px 24px;border-radius:999px;font-size:14px;font-weight:600;
+  }
+  .btn-ghost:hover{border-color:var(--darkest);}
+  .btn-link{background:none;border:none;color:var(--muted);font-size:13px;font-weight:600;text-decoration:underline;}
+
+  /* ── intro ───────────────────────────────── */
+  .intro__eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;}
+  .intro__title{font-size:clamp(36px,8vw,52px);font-weight:900;color:var(--black);line-height:1.05;margin-bottom:18px;letter-spacing:-.02em;}
+  .intro__desc{font-size:16px;color:var(--darkest);line-height:1.65;margin-bottom:8px;}
+  .intro__desc strong{font-weight:700;}
+  .intro__desc-muted{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:32px;}
+  .field-label{font-size:13px;font-weight:700;color:var(--black);margin-bottom:10px;display:block;}
+  .text-input{
+    width:100%;background:var(--white);border:1.5px solid rgba(0,0,0,0.18);
+    border-radius:14px;padding:16px 18px;color:var(--black);font-size:16px;margin-bottom:20px;
+  }
+  .text-input:focus{outline:none;border-color:var(--darkest);}
+  textarea.text-input{min-height:110px;resize:vertical;}
+  .contact-form{display:flex;flex-direction:column;gap:16px;margin-top:10px;}
+  .contact-field .text-input,.contact-field .time-select{margin-bottom:0;}
+  .phone-composite{
+    display:flex;align-items:center;gap:0;width:100%;min-height:56px;background:var(--white);
+    border:1.5px solid rgba(0,0,0,0.18);border-radius:14px;overflow:hidden;
+    transition:border-color .15s;
+  }
+  .phone-composite:focus-within{border-color:var(--darkest);}
+  .phone-composite.is-error{border-color:#b23;}
+  .phone-country{position:relative;flex:0 0 132px;min-width:0;border-right:1px solid rgba(0,0,0,0.1);}
+  .phone-country__flag{
+    position:absolute;left:14px;top:50%;width:24px;height:18px;object-fit:cover;
+    border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,0.08);transform:translateY(-50%);
+    pointer-events:none;
+  }
+  .phone-country__select{
+    width:100%;height:56px;border:0;background:transparent;color:var(--black);
+    font-size:15px;font-weight:700;padding:0 26px 0 48px;appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234d3936' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;
+  }
+  .phone-country__select:focus,.phone-input:focus{outline:none;}
+  .phone-input{flex:1;min-width:0;height:56px;border:0;background:transparent;color:var(--black);font-size:16px;padding:0 16px;}
+  .field-help{font-size:12px;color:var(--muted);line-height:1.45;margin-top:8px;}
+  .field-error{font-size:12px;color:#9b2f22;line-height:1.45;margin-top:8px;min-height:18px;}
+  .field-error:empty{display:none;}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+  /* ── quiz ────────────────────────────────── */
+  .quiz__progress-track{width:100%;height:6px;background:var(--bg);border-radius:999px;overflow:hidden;margin-bottom:8px;}
+  .quiz__progress-fill{height:100%;background:var(--darkest);border-radius:999px;transition:width .3s;}
+  .quiz__progress-label{font-size:12px;color:var(--muted);margin-bottom:28px;}
+  .quiz__phase{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);font-weight:700;margin-bottom:14px;}
+  .quiz__question{font-size:clamp(21px,4vw,26px);font-weight:700;color:var(--black);line-height:1.3;margin-bottom:8px;}
+  .quiz__note{font-size:13px;color:var(--muted);font-style:italic;margin-bottom:20px;}
+  .quiz__body{margin-bottom:28px;}
+
+  .opt-row{
+    display:block;width:100%;text-align:left;background:var(--darkest);color:var(--white);
+    border:2px solid transparent;border-radius:14px;padding:16px 20px;font-size:15px;font-weight:600;
+    margin-bottom:10px;transition:background .15s, border-color .15s;
+  }
+  .opt-row:hover{background:var(--dark);}
+  .opt-row.is-selected{background:var(--dark);border-color:var(--gold);}
+  .opt-row.is-selected::before{content:'✓ ';font-weight:900;}
+
+  .chip-wrap{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;}
+  .chip{
+    background:var(--darkest);color:var(--white);border:2px solid transparent;
+    border-radius:999px;padding:11px 20px;font-size:14px;font-weight:600;transition:background .15s,border-color .15s;
+  }
+  .chip:hover{background:var(--dark);}
+  .chip.is-selected{background:var(--dark);border-color:var(--gold);}
+  .chip.is-selected::before{content:'✓ ';font-weight:900;}
+
+  .other-input-wrap{margin-top:6px;margin-bottom:10px;}
+
+  .time-select{
+    width:100%;background:var(--white);border:1.5px solid var(--mid);border-radius:12px;
+    padding:14px 16px;color:var(--black);font-size:16px;font-weight:600;appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%234d3936' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 16px center;
+  }
+  .time-select:focus{outline:none;border-color:var(--darkest);}
+
+  .subblock{border:1px solid rgba(0,0,0,0.1);border-radius:14px;padding:18px 18px 6px;margin-bottom:14px;}
+  .subblock__title{font-size:14px;font-weight:700;color:var(--black);margin-bottom:12px;}
+  .subblock__row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .subblock__toggle{font-size:13px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+
+  .dyn-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
+  .dyn-row input[type=text]{flex:2;}
+  .dyn-list-item{
+    display:flex;align-items:center;justify-content:space-between;background:var(--bg);
+    border-radius:10px;padding:10px 14px;margin-bottom:8px;font-size:14px;color:var(--darkest);
+  }
+  .dyn-list-item button{background:none;border:none;color:var(--muted);font-size:16px;font-weight:700;}
+
+  .nav-row{display:flex;gap:12px;margin-top:8px;}
+  .nav-row .btn-ghost{flex:0 0 auto;}
+  .nav-row .btn-primary{flex:1;}
+
+  /* ── results ─────────────────────────────── */
+  .res__eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);font-weight:700;margin-bottom:10px;}
+  .res__title{font-size:clamp(26px,5vw,36px);font-weight:900;color:var(--black);margin-bottom:6px;}
+  .res__sub{font-size:15px;color:var(--muted);margin-bottom:32px;}
+  .res__section-title{font-size:16px;font-weight:700;color:var(--black);margin:32px 0 14px;}
+
+  .timeline-item{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid rgba(0,0,0,0.07);}
+  .timeline-item__time{flex:0 0 88px;font-weight:700;font-size:14px;color:var(--darkest);}
+  .timeline-item__label{flex:1;font-size:14.5px;color:var(--black);}
+  .timeline-item__bar{width:4px;border-radius:4px;flex:0 0 4px;align-self:stretch;}
+  .cat-trabalho{background:var(--darkest);}
+  .cat-habito{background:var(--gold);}
+  .cat-pessoal{background:var(--muted);}
+  .cat-compromisso{background:var(--black);}
+
+  .card{border:1px solid rgba(0,0,0,0.1);border-radius:16px;padding:22px 22px;margin-bottom:16px;}
+  .card--insight{border-left:4px solid var(--gold);background:var(--bg);}
+  .card--insight p{font-size:14.5px;color:var(--darkest);line-height:1.65;}
+  .card--insight .quote{font-style:italic;color:var(--muted);margin-bottom:10px;}
+  .card--health{border-left:4px solid var(--mid);background:var(--bg);}
+  .card--health p{font-size:14px;color:var(--darkest);line-height:1.6;}
+  .card--closing{background:var(--darkest);border:none;}
+  .card--closing p{color:var(--white);font-size:15px;font-style:italic;line-height:1.6;}
+  .card--weekly{background:var(--bg);}
+  .card--weekly p{font-size:14px;color:var(--darkest);line-height:1.6;}
+  .card--weekly strong{color:var(--black);}
+
+  .res__actions{display:flex;flex-direction:column;gap:12px;margin-top:32px;}
+  .submit-status{font-size:13px;color:var(--muted);line-height:1.5;margin-top:16px;}
+  .submit-status[data-type="error"]{color:#9b2f22;}
+
+  /* ── dashboard ───────────────────────────── */
+  .dash__header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+  .dash__greet{font-size:20px;font-weight:700;color:var(--black);}
+  .dash__stats{display:flex;align-items:center;gap:14px;}
+  .stat-pill{background:var(--bg);border-radius:999px;padding:9px 16px;font-size:13px;font-weight:700;color:var(--darkest);display:flex;align-items:center;gap:6px;}
+  .stat-pill.gold{background:var(--gold);color:var(--darkest);}
+
+  .level-bar-track{width:100%;height:8px;background:var(--bg);border-radius:999px;overflow:hidden;margin:6px 0 24px;}
+  .level-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--darkest));border-radius:999px;transition:width .4s;}
+  .level-label{font-size:12px;color:var(--muted);margin-bottom:4px;}
+
+  .tabs{display:flex;gap:6px;background:var(--bg);border-radius:999px;padding:5px;margin-bottom:24px;}
+  .tab-btn{flex:1;background:transparent;border:none;padding:11px 10px;border-radius:999px;font-size:13px;font-weight:700;color:var(--muted);}
+  .tab-btn.active{background:var(--darkest);color:var(--white);}
+
+  .task-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid rgba(0,0,0,0.07);}
+  .task-check{
+    flex:0 0 26px;width:26px;height:26px;border-radius:8px;border:2px solid var(--mid);
+    display:flex;align-items:center;justify-content:center;color:var(--white);font-weight:900;font-size:14px;background:var(--white);
+  }
+  .task-check.done{background:var(--darkest);border-color:var(--darkest);}
+  .task-check.disabled{opacity:.35;cursor:not-allowed;}
+  .task-row__body{flex:1;}
+  .task-row__time{font-size:12px;color:var(--muted);font-weight:700;}
+  .task-row__label{font-size:14.5px;color:var(--black);}
+  .task-row.done .task-row__label{color:var(--muted);text-decoration:line-through;}
+  .task-row__pts{font-size:12px;font-weight:700;color:var(--mid);}
+
+  .perfect-banner{background:var(--gold);color:var(--darkest);border-radius:14px;padding:16px 18px;font-size:14px;font-weight:700;margin-bottom:20px;text-align:center;}
+  .progress-text{font-size:13px;color:var(--muted);margin-bottom:8px;}
+
+  .ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .ach-card{border:1px solid rgba(0,0,0,0.1);border-radius:14px;padding:18px 16px;text-align:center;}
+  .ach-card.locked{opacity:.45;}
+  .ach-card__icon{font-size:30px;margin-bottom:10px;display:block;}
+  .ach-card__name{font-size:13.5px;font-weight:700;color:var(--black);margin-bottom:6px;}
+  .ach-card__desc{font-size:11.5px;color:var(--muted);line-height:1.4;}
+
+  @media(max-width:480px){
+    .ach-grid{grid-template-columns:1fr 1fr;}
+    .subblock__row{grid-template-columns:1fr;}
+    .phone-country{flex-basis:112px;}
+    .phone-country__select{font-size:14px;padding-left:44px;}
+    .phone-country__flag{left:12px;}
+    .phone-input{padding-inline:12px;}
+  }
+
+  /* print */
+  #printSheet{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printSheet, #printSheet *{visibility:visible;}
+    #printSheet{display:block;position:absolute;top:0;left:0;width:100%;padding:24px;}
+    .p-title{font-size:28px;font-weight:900;margin-bottom:4px;}
+    .p-sub{font-size:13px;color:#555;margin-bottom:20px;}
+    .p-section{font-size:15px;font-weight:700;margin:20px 0 8px;}
+    .p-row{display:flex;gap:16px;padding:6px 0;border-bottom:1px solid #ddd;font-size:13px;}
+    .p-row strong{width:70px;display:inline-block;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app" id="app"></div>
+<div id="printSheet"></div>
+
+<script type="module">
+'use strict';
+
+/* ────────────────────────────────────────────────────────────
+   QUESTION DEFINITIONS
+──────────────────────────────────────────────────────────── */
+const QUESTIONS = [
+  {id:'nome', text:'Qual o seu nome?', type:'text', placeholder:'Digite seu nome...'},
+
+  {id:'equipe', phase:'FASE 1 — SOBRE O SEU NEGÓCIO', text:'Você trabalha sozinha ou tem equipe/sócio?', type:'single',
+    options:['Sozinha','Tenho sócio(a)','Tenho equipe contratada'], other:true},
+
+  {id:'fase_negocio', phase:'FASE 1 — SOBRE O SEU NEGÓCIO', text:'Em que fase seu negócio está?', type:'single',
+    options:['Estruturando (começando agora)','Crescendo (validado, mas sem estrutura)','Estável (já rodando, quer otimizar)'], other:true},
+
+  {id:'dias_semana', phase:'FASE 1 — SOBRE O SEU NEGÓCIO', text:'Quais dias da semana você trabalha?', type:'multi',
+    options:['Seg','Ter','Qua','Qui','Sex','Sáb','Dom']},
+
+  {id:'horario_cliente', phase:'FASE 1 — SOBRE O SEU NEGÓCIO', text:'Você atende clientes em horário fixo (consultas, calls) ou é mais flexível?', type:'single',
+    options:['Horário fixo com cliente','Mais flexível','Misto'], other:true},
+
+  {id:'acordar', phase:'FASE 2 — HORÁRIOS FIXOS DO SEU DIA', text:'Que horas você quer acordar?', type:'time', range:[3,0,10,0], def:'06:30'},
+
+  {id:'dormir', phase:'FASE 2 — HORÁRIOS FIXOS DO SEU DIA', text:'Que horas quer dormir?', type:'time', range:[19,0,26,0], wrap:true, def:'22:30'},
+
+  {id:'expediente', phase:'FASE 2 — HORÁRIOS FIXOS DO SEU DIA', text:'Que horas começa e termina seu expediente?',
+    note:'Deixe em branco o período em que você não trabalha.', type:'workblocks'},
+
+  {id:'almoco_horario', phase:'FASE 2 — HORÁRIOS FIXOS DO SEU DIA', text:'Que horas você almoça?', type:'time', range:[9,0,16,0], def:'12:00'},
+
+  {id:'almoco_duracao', phase:'FASE 2 — HORÁRIOS FIXOS DO SEU DIA', text:'Quanto tempo dura seu almoço?', type:'single',
+    options:['30min','45min','1h','1h30','2h'], other:true},
+
+  {id:'compromissos', phase:'FASE 3 — COMPROMISSOS VARIÁVEIS', text:'Quais compromissos variáveis você tem, e horário?',
+    note:'Ex: levar filho na escola, academia, terapia. Pode deixar em branco se não tiver nenhum.', type:'dynamiclist', skippable:true},
+
+  {id:'habitos', phase:'FASE 4 — HÁBITOS QUE VOCÊ QUER TER', text:'Quais hábitos você quer inserir na rotina?', type:'habitpicker',
+    options:['Acordar cedo','Exercício físico','Dormir bem','Leitura']},
+
+  {id:'inimigo_habitos', phase:'FASE 4 — HÁBITOS QUE VOCÊ QUER TER', text:'O que hoje torna difícil manter esses hábitos? Qual é o seu maior inimigo?',
+    type:'text', long:true, placeholder:'Escreva livremente...'},
+
+  {id:'periodo_produtivo', phase:'FASE 5 — ENERGIA E PRODUTIVIDADE', text:'Em que período do dia você se sente mais produtiva?', type:'single',
+    options:['Manhã','Tarde','Noite'], other:true},
+
+  {id:'esquentar', phase:'FASE 5 — ENERGIA E PRODUTIVIDADE', text:'Você prefere fazer a tarefa mais difícil logo cedo, ou precisa "esquentar" com tarefas simples antes?',
+    type:'single', options:['Direto na mais difícil','Preciso esquentar antes'], other:true},
+
+  {id:'horas_sono', phase:'FASE 5 — ENERGIA E PRODUTIVIDADE', text:'Quantas horas de sono você sente que precisa pra funcionar bem?', type:'single',
+    options:['6h','7h','8h','9h'], other:true},
+
+  {id:'tempo_pra_si', phase:'FASE 5 — ENERGIA E PRODUTIVIDADE', text:'Quanto tempo você quer reservar só pra você (sem tela, sem trabalho) — e pra fazer o quê?',
+    type:'timeforself'},
+
+  {id:'hobby', phase:'FASE 5 — ENERGIA E PRODUTIVIDADE', text:'Você tem algum hobby que quer incluir na rotina?', type:'text',
+    placeholder:'Opcional...', skippable:true},
+
+  {id:'canais_conteudo', phase:'FASE 6 — COMO O TEMPO SE DIVIDE ENTRE OS 4 SISTEMAS',
+    text:'Quais canais você produz conteúdo? Quantas horas/dia pretende dedicar a isso?', type:'channels',
+    channelOptions:['Instagram','TikTok','YouTube','Blog'], timeOptions:['30min','1h','1h30','2h+'],
+    note:'sugestão: pelo menos 1h30/dia gera mais consistência'},
+
+  {id:'tempo_comercial', phase:'FASE 6 — COMO O TEMPO SE DIVIDE ENTRE OS 4 SISTEMAS', text:'Quanto tempo por dia você quer dedicar ao processo comercial?',
+    type:'single', options:['15min','30min','45min','1h+'], other:true, note:'sugestão: pelo menos 30min por dia'},
+
+  {id:'tempo_gestao', phase:'FASE 6 — COMO O TEMPO SE DIVIDE ENTRE OS 4 SISTEMAS', text:'Quanto tempo por semana você quer dedicar à gestão do negócio?',
+    type:'single', options:['1h','2h','3h+'], other:true, note:'sugestão: mínimo de 2h por semana'},
+
+  {id:'atendimento_padrao', phase:'FASE 6 — COMO O TEMPO SE DIVIDE ENTRE OS 4 SISTEMAS', text:'Como você organiza o atendimento aos clientes (produto/entrega)?',
+    type:'single', options:['Atendo presencial e online no mesmo dia','Prefiro concentrar — um dia só presencial, outro só online','Ainda não tenho um padrão'], other:true},
+
+  {id:'saude', phase:'FASE 7 — DIAGNÓSTICO FINAL', text:'Você tem alguma condição de saúde que precisa de cuidados diários específicos?',
+    note:'Ex: ansiedade, depressão, obesidade... (opcional)', type:'text', placeholder:'Opcional — descreva se quiser', skippable:true},
+
+  {id:'rotina_desanda', phase:'FASE 7 — DIAGNÓSTICO FINAL', text:'Hoje, o que mais faz sua rotina desandar?', type:'single',
+    options:['Excesso de trabalho','Procrastinação','Falta de energia','Imprevistos'], other:true},
+
+  {id:'angustia_desejo', phase:'FASE 7 — DIAGNÓSTICO FINAL', text:'O que mais te angustia na sua rotina hoje, e qual o seu maior desejo pra ela?',
+    type:'text', long:true, placeholder:'Escreva livremente...'}
+];
+
+const ACHIEVEMENTS = [
+  {id:'primeiro_passo', icon:'🌱', name:'Primeiro Passo', desc:'Concluiu a primeira tarefa da rotina.', check:s=>s.totalCompleted>=1},
+  {id:'dia_perfeito', icon:'🎯', name:'Dia Perfeito', desc:'Cumpriu 100% da rotina em um dia.', check:s=>s.perfectDays>=1},
+  {id:'streak3', icon:'🔥', name:'3 Dias Seguidos', desc:'Rotina completa por 3 dias seguidos.', check:s=>s.streak>=3},
+  {id:'streak7', icon:'⚡', name:'7 Dias Seguidos', desc:'Rotina completa por 7 dias seguidos.', check:s=>s.streak>=7},
+  {id:'streak21', icon:'🏆', name:'Hábito Formado', desc:'21 dias seguidos — o hábito virou automático.', check:s=>s.streak>=21},
+  {id:'pts100', icon:'⭐', name:'100 Pontos', desc:'Acumulou 100 pontos na sua jornada.', check:s=>s.points>=100},
+  {id:'pts500', icon:'🌟', name:'500 Pontos', desc:'Acumulou 500 pontos na sua jornada.', check:s=>s.points>=500},
+  {id:'pts1000', icon:'💫', name:'1000 Pontos', desc:'Acumulou 1000 pontos na sua jornada.', check:s=>s.points>=1000},
+  {id:'foco_total', icon:'🎯', name:'Foco Total', desc:'Completou as 3 prioridades do dia.', check:s=>(s.priorityPerfectDays||0)>=1},
+];
+
+const STORAGE_KEY = 'rotinaAntiCaos_v2';
+
+/* ────────────────────────────────────────────────────────────
+   STATE
+──────────────────────────────────────────────────────────── */
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {
+    screen:'intro', quizIndex:0, answers:{}, routine:null,
+    points:0, streak:0, perfectDays:0, totalCompleted:0,
+    lastPerfectDate:null, tasksState:{}, achievementsUnlocked:[], dashTab:'hoje',
+    priorities:{}, priorityPerfectDays:0, lastPriorityPerfectDate:null,
+    submission_id:createSubmissionId(),
+    submission:{status:'idle', id:null, message:''}
+  };
+}
+let state = loadState();
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+if(!state.submission) state.submission = {status:'idle', id:null, message:''};
+if(!state.submission_id) state.submission_id = createSubmissionId();
+
+const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL || '';
+const ROTINA_ENDPOINT = BACKEND_API_BASE_URL ? `${BACKEND_API_BASE_URL.replace(/\/$/, '')}/api/rotina-anti-caos` : '';
+let autoAdvanceTimer = null;
+
+function createSubmissionId(){
+  return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+const ISO_REGION_CODES = [
+  'AD','AE','AF','AG','AI','AL','AM','AO','AQ','AR','AS','AT','AU','AW','AX','AZ',
+  'BA','BB','BD','BE','BF','BG','BH','BI','BJ','BL','BM','BN','BO','BQ','BR','BS',
+  'BT','BV','BW','BY','BZ','CA','CC','CD','CF','CG','CH','CI','CK','CL','CM','CN',
+  'CO','CR','CU','CV','CW','CX','CY','CZ','DE','DJ','DK','DM','DO','DZ','EC','EE',
+  'EG','EH','ER','ES','ET','FI','FJ','FK','FM','FO','FR','GA','GB','GD','GE','GF',
+  'GG','GH','GI','GL','GM','GN','GP','GQ','GR','GS','GT','GU','GW','GY','HK','HM',
+  'HN','HR','HT','HU','ID','IE','IL','IM','IN','IO','IQ','IR','IS','IT','JE','JM',
+  'JO','JP','KE','KG','KH','KI','KM','KN','KP','KR','KW','KY','KZ','LA','LB','LC',
+  'LI','LK','LR','LS','LT','LU','LV','LY','MA','MC','MD','ME','MF','MG','MH','MK',
+  'ML','MM','MN','MO','MP','MQ','MR','MS','MT','MU','MV','MW','MX','MY','MZ','NA',
+  'NC','NE','NF','NG','NI','NL','NO','NP','NR','NU','NZ','OM','PA','PE','PF','PG',
+  'PH','PK','PL','PM','PN','PR','PS','PT','PW','PY','QA','RE','RO','RS','RU','RW',
+  'SA','SB','SC','SD','SE','SG','SH','SI','SJ','SK','SL','SM','SN','SO','SR','SS',
+  'ST','SV','SX','SY','SZ','TC','TD','TF','TG','TH','TJ','TK','TL','TM','TN','TO',
+  'TR','TT','TV','TW','TZ','UA','UG','UM','US','UY','UZ','VA','VC','VE','VG','VI',
+  'VN','VU','WF','WS','YE','YT','ZA','ZM','ZW'
+];
+
+function flagForCountry(code){
+  return String(code || '').toUpperCase().replace(/./g, char =>
+    String.fromCodePoint(127397 + char.charCodeAt(0))
+  );
+}
+
+function getCountries(){
+  const names = typeof Intl.DisplayNames === 'function'
+    ? new Intl.DisplayNames(['pt-BR'], {type:'region'})
+    : null;
+  let regions = ISO_REGION_CODES;
+  try{
+    if(typeof Intl.supportedValuesOf === 'function'){
+      regions = Intl.supportedValuesOf('region').filter(code => /^[A-Z]{2}$/.test(code));
+    }
+  }catch(error){
+    regions = ISO_REGION_CODES;
+  }
+  const codes = [...new Set([...regions, ...ISO_REGION_CODES])];
+
+  return codes
+    .map(code => {
+      const name = names?.of(code) || code;
+      return {code, name, label:`${flagForCountry(code)} ${name}`};
+    })
+    .sort((a,b) => a.name.localeCompare(b.name, 'pt-BR'));
+}
+
+const COUNTRIES = getCountries();
+
+function onlyDigits(value, maxLength){
+  return String(value || '').replace(/\D/g, '').slice(0, maxLength);
+}
+
+function formatBrazilPhone(value){
+  const digits = onlyDigits(value, 11);
+  const ddd = digits.slice(0, 2);
+  const first = digits.slice(2, 7);
+  const last = digits.slice(7, 11);
+
+  if(digits.length <= 2) return ddd ? `(${ddd}` : '';
+  if(digits.length <= 7) return `(${ddd}) ${first}`;
+  return `(${ddd}) ${first}-${last}`;
+}
+
+function getCountryName(code){
+  return COUNTRIES.find(country => country.code === code)?.name || code;
+}
+
+function flagImageUrl(code){
+  return `https://flagcdn.com/w40/${String(code || 'BR').toLowerCase()}.png`;
+}
+
+function validateEmail(value){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+}
+
+/* ────────────────────────────────────────────────────────────
+   TIME HELPERS
+──────────────────────────────────────────────────────────── */
+function pad(n){ return String(n).padStart(2,'0'); }
+function toMin(hhmm){ if(!hhmm) return 0; const [h,m]=hhmm.split(':').map(Number); return h*60+m; }
+function toHHMM(min){ min=((min%1440)+1440)%1440; return pad(Math.floor(min/60))+':'+pad(min%60); }
+function timeOptions(startH,startM,endH,endM,wrap){
+  const opts=[]; let start=startH*60+startM; let end=endH*60+endM; if(wrap) end+=1440;
+  for(let t=start;t<=end;t+=15){ opts.push(toHHMM(t)); }
+  return opts;
+}
+function durationMinutes(str){
+  if(!str) return 30;
+  const s=String(str).toLowerCase().trim();
+  const map={'15min':15,'30min':30,'45min':45,'1h':60,'1h30':90,'2h':120,'2h+':120,'1h+':60,'3h+':180,'6h':360,'7h':420,'8h':480,'9h':540};
+  if(map[s]!==undefined) return map[s];
+  let total=0;
+  const hMatch=s.match(/(\d+)\s*h/); const mMatch=s.match(/(\d+)\s*m/);
+  if(hMatch) total+=parseInt(hMatch[1])*60;
+  if(mMatch) total+=parseInt(mMatch[1]);
+  return total>0?total:30;
+}
+
+/* ────────────────────────────────────────────────────────────
+   ROUTINE GENERATOR (semanal)
+──────────────────────────────────────────────────────────── */
+const DAYS_ORDER = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+const DAY_FULL_NAME = {Seg:'Segunda-feira', Ter:'Terça-feira', Qua:'Quarta-feira', Qui:'Quinta-feira', Sex:'Sexta-feira', Sáb:'Sábado', Dom:'Domingo'};
+const JS_DAY_TO_LABEL = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+function dayLabelForDate(d){ return JS_DAY_TO_LABEL[d.getDay()]; }
+
+function generateDayBlocks(a, isWorkDay){
+  const blocks=[];
+  const wake = toMin(a.acordar||'06:30');
+  const sleepRaw = toMin(a.dormir||'22:30');
+  const sleepNorm = sleepRaw < wake ? sleepRaw+1440 : sleepRaw;
+
+  blocks.push({min:wake, dur:15, label:'Acordar e se organizar', cat:'habito'});
+
+  const habitos = a.habitos || [];
+  const presetHabitos = ['Acordar cedo','Exercício físico','Dormir bem','Leitura'];
+  const wantsExercise = habitos.includes('Exercício físico');
+  const wantsReading = habitos.includes('Leitura');
+  const customHabits = habitos.filter(h=>!presetHabitos.includes(h));
+
+  const produtivo = a.periodo_produtivo || 'Manhã';
+  const esquenta = a.esquentar === 'Preciso esquentar antes';
+
+  let exercisePlacedEarly=false;
+  if(wantsExercise && !(produtivo==='Manhã' && !esquenta)){
+    blocks.push({min:wake+15, dur:45, label:'Exercício físico 💪', cat:'habito'});
+    exercisePlacedEarly=true;
+  }
+
+  let workBlocks=[];
+  if(isWorkDay){
+    const wb = a.expediente || {};
+    ['manha','tarde','noite'].forEach(p=>{
+      if(wb[p] && wb[p].start && wb[p].end && toMin(wb[p].end) > toMin(wb[p].start)){
+        workBlocks.push({start:toMin(wb[p].start), end:toMin(wb[p].end)});
+      }
+    });
+    workBlocks.sort((x,y)=>x.start-y.start);
+  }
+
+  if(a.almoco_horario){
+    blocks.push({min:toMin(a.almoco_horario), dur:durationMinutes(a.almoco_duracao), label:'Almoço 🍽️', cat:'pessoal'});
+  }
+
+  if(isWorkDay){
+    const canais = a.canais_conteudo || {list:[], time:'1h'};
+    const conteudoDur = (canais.list && canais.list.length) ? durationMinutes(canais.time) : 0;
+    const comercialDur = durationMinutes(a.tempo_comercial);
+
+    if(workBlocks.length>0){
+      const first = workBlocks[0];
+      let cursor = first.start;
+      if(conteudoDur>0){
+        blocks.push({min:cursor, dur:conteudoDur, label:'Produção de conteúdo ('+canais.list.join(', ')+')', cat:'trabalho'});
+        cursor+=conteudoDur;
+      }
+      blocks.push({min:cursor, dur:comercialDur, label:'Processo comercial (prospecção/vendas)', cat:'trabalho'});
+      cursor+=comercialDur;
+      if(cursor < first.end){
+        blocks.push({min:cursor, dur:first.end-cursor, label:'Atendimento a clientes / Entrega', cat:'trabalho'});
+      }
+      for(let i=1;i<workBlocks.length;i++){
+        const wbi=workBlocks[i];
+        blocks.push({min:wbi.start, dur:wbi.end-wbi.start, label:'Atendimento a clientes / Entrega', cat:'trabalho'});
+      }
+    }
+  }
+
+  if(wantsExercise && !exercisePlacedEarly){
+    const after = workBlocks.length? workBlocks[workBlocks.length-1].end : wake+240;
+    blocks.push({min:after+10, dur:45, label:'Exercício físico 💪', cat:'habito'});
+  }
+
+  (a.compromissos||[]).forEach(c=>{
+    if(c.label) blocks.push({min:toMin(c.time||'09:00'), dur:30, label:c.label+' 📌', cat:'compromisso'});
+  });
+
+  customHabits.forEach(h=>{
+    const after = workBlocks.length? workBlocks[workBlocks.length-1].end : wake+240;
+    blocks.push({min:after+20, dur:30, label:h, cat:'habito'});
+  });
+
+  let cursorEve = sleepNorm - 20;
+  blocks.push({min:cursorEve, dur:20, label:'Ritual de sono / desacelerar 🌙', cat:'habito'});
+  if(wantsReading){
+    cursorEve -= 20;
+    blocks.push({min:cursorEve, dur:20, label:'Leitura 📖', cat:'habito'});
+  }
+  const selfTime = a.tempo_pra_si || {};
+  if(selfTime.duration){
+    const d = durationMinutes(selfTime.duration);
+    cursorEve -= d;
+    blocks.push({min:cursorEve, dur:d, label:'Tempo pra você'+(selfTime.desc?' — '+selfTime.desc:'')+' 🌷', cat:'pessoal'});
+  }
+  blocks.push({min:sleepNorm, dur:0, label:'Dormir 😴', cat:'habito'});
+
+  blocks.sort((x,y)=>x.min-y.min);
+  return blocks;
+}
+
+function generateRoutine(a){
+  const workDays = a.dias_semana || [];
+  const week = {};
+  DAYS_ORDER.forEach(day=>{
+    week[day] = generateDayBlocks(a, workDays.includes(day));
+  });
+
+  const weekly = [];
+  weekly.push({
+    label:'Gestão do negócio', dur:a.tempo_gestao||'2h',
+    tip:'sugestão: reserve uma tarde fixa (ex: sexta-feira) só pra isso, sem misturar com atendimento.'
+  });
+
+  return {week, weekly, workDays};
+}
+
+const INSIGHTS = {
+  'Excesso de trabalho':'Segundo a pesquisa de Wendy Wood, hábitos sustentáveis dependem mais do ambiente do que da força de vontade. Experimente bloquear no calendário um horário de "fechamento do expediente" e proteger esse limite como se fosse um compromisso com cliente — porque é.',
+  'Procrastinação':'Peter Gollwitzer mostrou que "intenções de implementação" (planos do tipo "se X, então Y") aumentam muito a chance de agir. Em vez de "vou fazer conteúdo hoje", tente: "assim que eu terminar o café da manhã, abro o app e gravo por 20 minutos".',
+  'Falta de energia':'Charles Duhigg mostra que hábitos se fixam melhor quando "empilhados" a uma rotina que já existe (habit stacking). Ligue o hábito novo a algo que você já faz todos os dias — e proteja seu sono, ele é a base de toda energia disponível.',
+  'Imprevistos':'Rotinas rígidas quebram no primeiro imprevisto. Wendy Wood defende desenhar para a vida real, não para o dia ideal — por isso deixamos margens entre os blocos da sua rotina. Use-as como respiro, não como atraso.'
+};
+const DEFAULT_INSIGHT = 'A ciência do hábito (Duhigg, Gollwitzer, Wendy Wood) mostra que rotina não se sustenta na força de vontade — se sustenta em estrutura, gatilhos claros e ambiente favorável. É exatamente isso que construímos aqui.';
+
+function getUtms(){
+  const params = new URLSearchParams(window.location.search);
+  const utms = {};
+  ['utm_source','utm_medium','utm_campaign','utm_term','utm_content'].forEach(key=>{
+    const value = params.get(key);
+    if(value) utms[key] = value;
+  });
+  return utms;
+}
+
+async function submitRoutineResponse({final=false, stepId=null, stepIndex=null}={}){
+  if(!ROTINA_ENDPOINT || !state.submission_id) return;
+  if(!state.answers.nome || !state.answers.email || !state.answers.phone) return;
+
+  if(final){
+    state.submission = {status:'sending', id:state.submission.id || null, message:'Salvando suas respostas para análise.'};
+  }
+  save();
+
+  const payload = {
+    submission_id: state.submission_id,
+    source: 'rotina-anti-caos',
+    page_path: window.location.pathname,
+    answers: state.answers,
+    routine: final ? state.routine : (state.routine || {}),
+    utms: getUtms(),
+    user_agent: navigator.userAgent,
+    website: '',
+    metadata: {
+      title: document.title,
+      referrer: document.referrer || null,
+      href: window.location.href,
+      storage_key: STORAGE_KEY,
+      current_step_id: stepId,
+      current_step_index: stepIndex,
+      is_final: final,
+      submitted_at: new Date().toISOString()
+    }
+  };
+
+  try{
+    const response = await fetch(ROTINA_ENDPOINT, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data = (response.headers.get('content-type') || '').includes('application/json')
+      ? await response.json()
+      : {};
+    if(!response.ok) throw new Error(data.message || 'Não foi possível salvar suas respostas.');
+    state.submission = final
+      ? {status:'sent', id:data.id || null, message:'Respostas salvas.'}
+      : {status:'draft_sent', id:data.id || state.submission.id || null, message:''};
+  }catch(error){
+    if(final){
+      state.submission = {
+        status:'error',
+        id:state.submission.id || null,
+        message:error instanceof Error ? error.message : 'Não foi possível salvar suas respostas.'
+      };
+    }else{
+      state.submission = {status:'draft_error', id:state.submission.id || null, message:''};
+    }
+  }
+  save();
+  if(state.screen === 'result') render();
+}
+
+function saveCurrentStepDraft(q, final=false){
+  submitRoutineResponse({
+    final,
+    stepId:q?.id || 'contact',
+    stepIndex:q ? state.quizIndex : 0
+  });
+}
+
+function advanceFromCurrentQuestion(){
+  const q = QUESTIONS[state.quizIndex];
+  if(!q || !currentAnswerIsValid(q)) return;
+
+  clearTimeout(autoAdvanceTimer);
+
+  if(state.quizIndex===QUESTIONS.length-1){
+    state.screen='generating';
+    render();
+    setTimeout(()=>{
+      state.routine = generateRoutine(state.answers);
+      state.submission = {status:'idle', id:state.submission.id || null, message:''};
+      state.screen='result';
+      render();
+      submitRoutineResponse({final:true, stepId:q.id, stepIndex:state.quizIndex});
+    }, 1400);
+  }else{
+    const completedQuestion = q;
+    const completedIndex = state.quizIndex;
+    state.quizIndex++;
+    save();
+    submitRoutineResponse({final:false, stepId:completedQuestion.id, stepIndex:completedIndex});
+    render();
+  }
+}
+
+function scheduleAutoAdvance(){
+  clearTimeout(autoAdvanceTimer);
+  autoAdvanceTimer = setTimeout(()=>advanceFromCurrentQuestion(), 180);
+}
+
+/* ────────────────────────────────────────────────────────────
+   RENDER HELPERS
+──────────────────────────────────────────────────────────── */
+const app = document.getElementById('app');
+function render(){ save(); app.innerHTML='';
+  if(state.screen==='intro') renderIntro();
+  else if(state.screen==='quiz') renderQuiz();
+  else if(state.screen==='generating') renderGenerating();
+  else if(state.screen==='result') renderResult();
+  else if(state.screen==='dashboard') renderDashboard();
+}
+
+function el(tag, cls, html){ const e=document.createElement(tag); if(cls) e.className=cls; if(html!==undefined) e.innerHTML=html; return e; }
+
+/* ── INTRO ──────────────────────────────────────────────── */
+function renderIntro(){
+  const wrap = el('div','center-screen');
+  wrap.appendChild(el('p','intro__eyebrow','MÉTODO PRÓPRIO · JÚLIA FERREIRA'));
+  wrap.appendChild(el('h1','intro__title','Rotina<br>Anti-Caos'));
+  wrap.appendChild(el('p','intro__desc','Um sistema próprio, baseado em ciência do comportamento e do hábito <strong>(Duhigg, Gollwitzer, Wendy Wood)</strong>. Não é só um cronograma — é uma metodologia que identifica onde sua rotina trava e desenha uma estrutura sob medida para a sua realidade.'));
+  wrap.appendChild(el('p','intro__desc-muted','Responda as perguntas com calma. No final, você recebe sua rotina personalizada e pode baixá-la.'));
+
+  const form = el('form','contact-form');
+  form.noValidate = true;
+
+  const nameField = el('div','contact-field');
+  const nameLabel = el('label','field-label','Nome');
+  nameLabel.htmlFor = 'intro-name';
+  const nameInput = el('input','text-input');
+  nameInput.id = 'intro-name';
+  nameInput.type='text';
+  nameInput.autocomplete='name';
+  nameInput.placeholder='Digite seu nome...';
+  nameInput.value = state.answers.nome || '';
+  const nameError = el('p','field-error');
+  nameField.appendChild(nameLabel); nameField.appendChild(nameInput); nameField.appendChild(nameError);
+
+  const emailField = el('div','contact-field');
+  const emailLabel = el('label','field-label','E-mail');
+  emailLabel.htmlFor = 'intro-email';
+  const emailInput = el('input','text-input');
+  emailInput.id = 'intro-email';
+  emailInput.type='email';
+  emailInput.inputMode='email';
+  emailInput.autocomplete='email';
+  emailInput.placeholder='voce@email.com';
+  emailInput.value = state.answers.email || '';
+  const emailError = el('p','field-error');
+  emailField.appendChild(emailLabel); emailField.appendChild(emailInput); emailField.appendChild(emailError);
+
+  const phoneField = el('div','contact-field');
+  const phoneLabel = el('label','field-label','Telefone');
+  phoneLabel.htmlFor = 'intro-phone-number';
+  const phoneBody = el('div','');
+  const phoneError = el('p','field-error');
+  const phoneHelp = el('p','field-help','Selecione o país e preencha o telefone. Para Brasil, digite DDD + telefone com 11 dígitos.');
+  const phoneComposite = el('div','phone-composite');
+
+  const countryWrap = el('div','phone-country');
+  const countryFlag = el('img','phone-country__flag');
+  countryFlag.alt = 'Bandeira do Brasil';
+  countryFlag.src = flagImageUrl('BR');
+  countryFlag.width = 40;
+  countryFlag.height = 30;
+  const countrySelect = el('select','phone-country__select');
+  countrySelect.id = 'intro-country';
+  countrySelect.setAttribute('aria-label','País do telefone');
+  countrySelect.autocomplete = 'country';
+  const selectedCountry = state.answers.phone_country_code || 'BR';
+  const brOption = document.createElement('option');
+  brOption.value = 'BR';
+  brOption.textContent = 'Brasil';
+  brOption.selected = selectedCountry === 'BR';
+  countrySelect.appendChild(brOption);
+  COUNTRIES.filter(country => country.code !== 'BR').forEach(country=>{
+    const option = document.createElement('option');
+    option.value = country.code;
+    option.textContent = country.name;
+    option.selected = selectedCountry === country.code;
+    countrySelect.appendChild(option);
+  });
+  countryWrap.appendChild(countryFlag);
+  countryWrap.appendChild(countrySelect);
+
+  phoneComposite.appendChild(countryWrap);
+  phoneBody.appendChild(phoneComposite);
+
+  function drawPhoneInputs(){
+    [...phoneComposite.querySelectorAll('#intro-phone-number')].forEach(node=>node.remove());
+    phoneError.textContent = '';
+    phoneComposite.classList.remove('is-error');
+    const selectedName = getCountryName(countrySelect.value);
+    countryFlag.src = flagImageUrl(countrySelect.value);
+    countryFlag.alt = `Bandeira: ${selectedName}`;
+
+    if(countrySelect.value === 'BR'){
+      phoneLabel.textContent = 'Telefone';
+      const numberLabel = el('label','sr-only','Número do telefone');
+      numberLabel.htmlFor = 'intro-phone-number';
+      const numberInput = el('input','phone-input');
+      numberInput.id = 'intro-phone-number';
+      numberInput.type = 'tel';
+      numberInput.inputMode = 'numeric';
+      numberInput.autocomplete = 'tel-national';
+      numberInput.placeholder = '(__) 99999-9999';
+      numberInput.maxLength = 15;
+      numberInput.value = formatBrazilPhone(`${state.answers.phone_ddd || ''}${state.answers.phone_number || ''}`);
+      numberInput.oninput = ()=>{ numberInput.value = formatBrazilPhone(numberInput.value); };
+
+      phoneComposite.appendChild(numberLabel);
+      phoneComposite.appendChild(numberInput);
+    }else{
+      phoneLabel.textContent = 'Telefone';
+      const phoneInput = el('input','phone-input');
+      phoneInput.id = 'intro-phone-number';
+      phoneInput.type = 'tel';
+      phoneInput.inputMode = 'tel';
+      phoneInput.autocomplete = 'tel-national';
+      phoneInput.placeholder = 'Digite o telefone';
+      phoneInput.value = state.answers.phone_number || '';
+      phoneComposite.appendChild(phoneInput);
+    }
+  }
+
+  countrySelect.onchange = ()=>{
+    state.answers.phone_country_code = countrySelect.value;
+    state.answers.phone_country_name = getCountryName(countrySelect.value);
+    state.answers.phone_ddd = '';
+    state.answers.phone_number = '';
+    drawPhoneInputs();
+  };
+
+  drawPhoneInputs();
+  phoneField.appendChild(phoneLabel); phoneField.appendChild(phoneBody); phoneField.appendChild(phoneHelp); phoneField.appendChild(phoneError);
+
+  form.appendChild(nameField);
+  form.appendChild(emailField);
+  form.appendChild(phoneField);
+
+  const btn = el('button','btn-primary','Começar →');
+  btn.type = 'submit';
+  form.onsubmit = (event)=>{
+    event.preventDefault();
+    const name = nameInput.value.trim();
+    const email = emailInput.value.trim().toLowerCase();
+    const countryCode = countrySelect.value || 'BR';
+    const countryName = getCountryName(countryCode);
+    const phoneInput = phoneBody.querySelector('#intro-phone-number');
+    const phoneDigits = onlyDigits(phoneInput?.value || '', 11);
+    const ddd = countryCode === 'BR' ? phoneDigits.slice(0, 2) : '';
+    const phoneNumber = countryCode === 'BR'
+      ? phoneDigits.slice(2, 11)
+      : String(phoneInput?.value || '').trim();
+
+    nameError.textContent = '';
+    emailError.textContent = '';
+    phoneError.textContent = '';
+    nameInput.style.borderColor = '';
+    emailInput.style.borderColor = '';
+    phoneComposite.classList.remove('is-error');
+
+    if(name.length < 2){
+      nameError.textContent = 'Informe seu nome.';
+      nameInput.style.borderColor='#b23';
+      nameInput.focus();
+      return;
+    }
+    if(!validateEmail(email)){
+      emailError.textContent = 'Informe um e-mail válido.';
+      emailInput.style.borderColor='#b23';
+      emailInput.focus();
+      return;
+    }
+    if(countryCode === 'BR' && phoneDigits.length !== 11){
+      phoneError.textContent = 'Informe DDD + telefone com 11 dígitos.';
+      phoneComposite.classList.add('is-error');
+      if(phoneInput){ phoneInput.focus(); }
+      return;
+    }
+    if(countryCode !== 'BR' && phoneNumber.replace(/\D/g,'').length < 5){
+      phoneError.textContent = 'Informe um telefone válido.';
+      phoneComposite.classList.add('is-error');
+      if(phoneInput){ phoneInput.focus(); }
+      return;
+    }
+
+    state.answers.nome = name;
+    state.answers.email = email;
+    state.answers.phone_country_code = countryCode;
+    state.answers.phone_country_name = countryName;
+    state.answers.phone_ddd = countryCode === 'BR' ? ddd : '';
+    state.answers.phone_number = phoneNumber;
+    state.answers.phone = countryCode === 'BR' ? `+55${ddd}${phoneNumber}` : phoneNumber;
+    state.screen='quiz'; state.quizIndex=1;
+    saveCurrentStepDraft(null, false);
+    render();
+  };
+  form.appendChild(btn);
+  wrap.appendChild(form);
+  app.appendChild(wrap);
+}
+
+/* ── QUIZ ───────────────────────────────────────────────── */
+function currentAnswerIsValid(q){
+  const v = state.answers[q.id];
+  if(q.skippable) return true;
+  switch(q.type){
+    case 'text': return !!(v && String(v).trim());
+    case 'single': return !!v;
+    case 'multi': return !!(v && v.length);
+    case 'time': return !!v;
+    case 'workblocks': {
+      if(!v) return false;
+      return ['manha','tarde','noite'].some(p=>v[p] && v[p].start && v[p].end);
+    }
+    case 'dynamiclist': return true;
+    case 'habitpicker': return !!(v && v.length);
+    case 'timeforself': return !!(v && v.duration);
+    case 'channels': return !!(v && v.list && v.list.length && v.time);
+    default: return true;
+  }
+}
+
+function renderQuiz(){
+  const q = QUESTIONS[state.quizIndex];
+  const total = QUESTIONS.length;
+  const wrap = el('div','');
+
+  const track = el('div','quiz__progress-track');
+  const fill = el('div','quiz__progress-fill'); fill.style.width = Math.round((state.quizIndex/(total-1))*100)+'%';
+  track.appendChild(fill); wrap.appendChild(track);
+  wrap.appendChild(el('p','quiz__progress-label', `Pergunta ${state.quizIndex+1} de ${total}`));
+
+  if(q.phase) wrap.appendChild(el('p','quiz__phase', q.phase));
+  wrap.appendChild(el('h2','quiz__question', q.text));
+  if(q.note) wrap.appendChild(el('p','quiz__note', q.note));
+
+  const body = el('div','quiz__body');
+  renderQuestionBody(body, q);
+  wrap.appendChild(body);
+
+  const nav = el('div','nav-row');
+  if(state.quizIndex>0){
+    const back = el('button','btn-ghost','← Voltar');
+    back.onclick=()=>{ state.quizIndex--; render(); };
+    nav.appendChild(back);
+  }
+  const nextLabel = state.quizIndex===total-1 ? 'Ver minha rotina →' : (q.skippable ? 'Pular / Continuar →' : 'Próxima →');
+  const next = el('button','btn-primary', nextLabel);
+  const valid = currentAnswerIsValid(q);
+  next.disabled = !valid;
+  next.onclick=()=>advanceFromCurrentQuestion();
+  nav.appendChild(next);
+  wrap.appendChild(nav);
+  app.appendChild(wrap);
+}
+
+function refreshNav(){
+  // re-render whole quiz to keep next-button enabled state simple & correct
+  render();
+}
+
+function renderQuestionBody(body, q){
+  const a = state.answers;
+  if(q.type==='text'){
+    const input = el(q.long?'textarea':'input','text-input');
+    if(!q.long) input.type='text';
+    input.placeholder = q.placeholder||'';
+    input.value = a[q.id]||'';
+    input.oninput = ()=>{ a[q.id]=input.value; save(); syncNextButton(); };
+    body.appendChild(input);
+    if(q.skippable){
+      const skip = el('button','btn-link','Pular esta pergunta');
+      skip.style.display='block'; skip.style.marginTop='4px';
+      skip.onclick=()=>{ a[q.id]=a[q.id]||''; refreshNav(); };
+      body.appendChild(skip);
+    }
+  }
+  else if(q.type==='single'){
+    const optsAll = q.other ? [...q.options,'Outro'] : q.options;
+    optsAll.forEach(opt=>{
+      const isOther = opt==='Outro';
+      const currentVal = a[q.id];
+      const selected = isOther ? (currentVal!==undefined && !q.options.includes(currentVal)) : currentVal===opt;
+      const btn = el('button','opt-row'+(selected?' is-selected':''), isOther?'Outro (digitar resposta)':opt);
+      btn.onclick=()=>{
+        if(isOther){ a[q.id]=a[q.id_other_temp]||''; a['__other_'+q.id]=true; }
+        else { a[q.id]=opt; delete a['__other_'+q.id]; }
+        if(isOther) refreshNav();
+        else { save(); syncNextButton(); scheduleAutoAdvance(); }
+      };
+      body.appendChild(btn);
+    });
+    if(q.other && a['__other_'+q.id]){
+      const wrap2 = el('div','other-input-wrap');
+      const input = el('input','text-input'); input.type='text'; input.placeholder='Digite sua resposta...';
+      input.value = (!q.options.includes(a[q.id]) ? a[q.id] : '') || '';
+      input.oninput = ()=>{ a[q.id]=input.value; save(); syncNextButton(); };
+      wrap2.appendChild(input); body.appendChild(wrap2);
+    }
+    if(q.note) body.appendChild(el('p','quiz__note', q.note));
+  }
+  else if(q.type==='multi'){
+    if(!a[q.id]) a[q.id]=[];
+    const chipWrap = el('div','chip-wrap');
+    q.options.forEach(opt=>{
+      const selected = a[q.id].includes(opt);
+      const chip = el('button','chip'+(selected?' is-selected':''), opt);
+      chip.onclick=()=>{
+        const idx = a[q.id].indexOf(opt);
+        if(idx>-1) a[q.id].splice(idx,1); else a[q.id].push(opt);
+        refreshNav();
+      };
+      chipWrap.appendChild(chip);
+    });
+    body.appendChild(chipWrap);
+  }
+  else if(q.type==='time'){
+    const opts = timeOptions(q.range[0],q.range[1],q.range[2],q.range[3], q.wrap);
+    const sel = el('select','time-select');
+    opts.forEach(t=>{
+      const o = document.createElement('option'); o.value=t; o.textContent=t;
+      if((a[q.id]||q.def)===t) o.selected=true;
+      sel.appendChild(o);
+    });
+    if(!a[q.id]){ a[q.id]=q.def||opts[0]; }
+    sel.onchange=()=>{ a[q.id]=sel.value; save(); syncNextButton(); scheduleAutoAdvance(); };
+    body.appendChild(sel);
+  }
+  else if(q.type==='workblocks'){
+    if(!a[q.id]) a[q.id]={manha:{start:'',end:''}, tarde:{start:'',end:''}, noite:{start:'',end:''}};
+    const periods = [['manha','Manhã'],['tarde','Tarde'],['noite','Noite']];
+    const fullOpts = timeOptions(0,0,23,45,false);
+    periods.forEach(([key,label])=>{
+      const sub = el('div','subblock');
+      sub.appendChild(el('p','subblock__title', label));
+      const row = el('div','subblock__row');
+      ['start','end'].forEach(k=>{
+        const sel = el('select','time-select');
+        const empty = document.createElement('option'); empty.value=''; empty.textContent='— não trabalho —';
+        sel.appendChild(empty);
+        fullOpts.forEach(t=>{
+          const o=document.createElement('option'); o.value=t; o.textContent=(k==='start'?'Início ':'Fim ')+t;
+          if(a[q.id][key][k]===t) o.selected=true;
+          sel.appendChild(o);
+        });
+        sel.onchange=()=>{ a[q.id][key][k]=sel.value; save(); syncNextButton(); };
+        row.appendChild(sel);
+      });
+      sub.appendChild(row);
+      body.appendChild(sub);
+    });
+  }
+  else if(q.type==='dynamiclist'){
+    if(!a[q.id]) a[q.id]=[];
+    const listWrap = el('div','');
+    function drawList(){
+      listWrap.innerHTML='';
+      a[q.id].forEach((item,i)=>{
+        const row = el('div','dyn-list-item');
+        row.innerHTML = `<span>${item.label} — ${item.time}</span>`;
+        const rm = el('button','','✕');
+        rm.onclick=()=>{ a[q.id].splice(i,1); drawList(); syncNextButton(); };
+        row.appendChild(rm);
+        listWrap.appendChild(row);
+      });
+    }
+    drawList();
+    body.appendChild(listWrap);
+
+    const row = el('div','dyn-row');
+    const textInput = el('input',''); textInput.type='text'; textInput.placeholder='Ex: Levar filho na escola';
+    textInput.className='text-input'; textInput.style.marginBottom='0';
+    const timeSel = el('select','time-select'); timeSel.style.flex='1';
+    timeOptions(0,0,23,45,false).forEach(t=>{ const o=document.createElement('option'); o.value=t;o.textContent=t; if(t==='09:00')o.selected=true; timeSel.appendChild(o); });
+    row.appendChild(textInput); row.appendChild(timeSel);
+    body.appendChild(row);
+
+    const addBtn = el('button','btn-ghost','+ adicionar compromisso');
+    addBtn.style.marginBottom='10px';
+    addBtn.onclick=()=>{
+      if(!textInput.value.trim()) return;
+      a[q.id].push({label:textInput.value.trim(), time:timeSel.value});
+      textInput.value='';
+      drawList(); syncNextButton();
+    };
+    body.appendChild(addBtn);
+  }
+  else if(q.type==='habitpicker'){
+    if(!a[q.id]) a[q.id]=[];
+    const chipWrap = el('div','chip-wrap');
+    function draw(){
+      chipWrap.innerHTML='';
+      const allOpts = [...q.options, ...a[q.id].filter(h=>!q.options.includes(h))];
+      allOpts.forEach(opt=>{
+        const selected = a[q.id].includes(opt);
+        const chip = el('button','chip'+(selected?' is-selected':''), opt);
+        chip.onclick=()=>{
+          const idx=a[q.id].indexOf(opt);
+          if(idx>-1) a[q.id].splice(idx,1); else a[q.id].push(opt);
+          draw(); syncNextButton();
+        };
+        chipWrap.appendChild(chip);
+      });
+    }
+    draw();
+    body.appendChild(chipWrap);
+
+    const row = el('div','dyn-row');
+    const input = el('input',''); input.type='text'; input.placeholder='+ adicionar outro hábito';
+    input.className='text-input'; input.style.marginBottom='0';
+    const addBtn = el('button','btn-ghost','Adicionar');
+    addBtn.onclick=()=>{
+      const v = input.value.trim();
+      if(!v) return;
+      if(!a[q.id].includes(v)) a[q.id].push(v);
+      input.value='';
+      draw(); syncNextButton();
+    };
+    row.appendChild(input); row.appendChild(addBtn);
+    body.appendChild(row);
+  }
+  else if(q.type==='timeforself'){
+    if(!a[q.id]) a[q.id]={duration:'', desc:''};
+    const chipWrap = el('div','chip-wrap');
+    ['15min','30min','45min','1h','1h30','2h+'].forEach(opt=>{
+      const selected = a[q.id].duration===opt;
+      const chip = el('button','chip'+(selected?' is-selected':''), opt);
+      chip.onclick=()=>{ a[q.id].duration=opt; refreshNav(); };
+      chipWrap.appendChild(chip);
+    });
+    body.appendChild(chipWrap);
+    const label = el('label','field-label','Para fazer o quê? (opcional)');
+    const input = el('input','text-input'); input.type='text'; input.placeholder='ex: skincare, meditação, banho demorado...';
+    input.value = a[q.id].desc||'';
+    input.oninput=()=>{ a[q.id].desc=input.value; save(); };
+    body.appendChild(label); body.appendChild(input);
+  }
+  else if(q.type==='channels'){
+    if(!a[q.id]) a[q.id]={list:[], time:''};
+    const chipWrap = el('div','chip-wrap');
+    function draw(){
+      chipWrap.innerHTML='';
+      const allOpts = [...q.channelOptions, ...a[q.id].list.filter(c=>!q.channelOptions.includes(c))];
+      allOpts.forEach(opt=>{
+        const selected = a[q.id].list.includes(opt);
+        const chip = el('button','chip'+(selected?' is-selected':''), opt);
+        chip.onclick=()=>{
+          const idx=a[q.id].list.indexOf(opt);
+          if(idx>-1) a[q.id].list.splice(idx,1); else a[q.id].list.push(opt);
+          draw(); syncNextButton();
+        };
+        chipWrap.appendChild(chip);
+      });
+    }
+    draw();
+    body.appendChild(chipWrap);
+
+    const row = el('div','dyn-row');
+    const input = el('input',''); input.type='text'; input.placeholder='+ outro canal';
+    input.className='text-input'; input.style.marginBottom='0';
+    const addBtn = el('button','btn-ghost','Adicionar');
+    addBtn.onclick=()=>{
+      const v = input.value.trim();
+      if(!v) return;
+      if(!a[q.id].list.includes(v)) a[q.id].list.push(v);
+      input.value=''; draw(); syncNextButton();
+    };
+    row.appendChild(input); row.appendChild(addBtn);
+    body.appendChild(row);
+
+    body.appendChild(el('p','field-label','Quanto tempo por dia?'));
+    const timeWrap = el('div','chip-wrap');
+    q.timeOptions.forEach(opt=>{
+      const selected = a[q.id].time===opt;
+      const chip = el('button','chip'+(selected?' is-selected':''), opt);
+      chip.onclick=()=>{ a[q.id].time=opt; refreshNav(); };
+      timeWrap.appendChild(chip);
+    });
+    body.appendChild(timeWrap);
+    if(q.note) body.appendChild(el('p','quiz__note', q.note));
+  }
+}
+
+function syncNextButton(){
+  const q = QUESTIONS[state.quizIndex];
+  const nav = document.querySelector('.nav-row .btn-primary');
+  if(nav) nav.disabled = !currentAnswerIsValid(q);
+}
+
+/* ── GENERATING ─────────────────────────────────────────── */
+function renderGenerating(){
+  const wrap = el('div','center-screen');
+  wrap.style.textAlign='center';
+  wrap.appendChild(el('p','intro__eyebrow','UM MOMENTO'));
+  wrap.appendChild(el('h2','quiz__question','Montando sua rotina anti-caos...'));
+  wrap.appendChild(el('p','intro__desc-muted','Cruzando seus horários, hábitos e energia pra desenhar uma estrutura sob medida.'));
+  app.appendChild(wrap);
+}
+
+/* ── RESULT ─────────────────────────────────────────────── */
+function categoryBar(cat){ return 'timeline-item__bar cat-'+cat; }
+
+function buildTimelineHTML(blocks){
+  return blocks.map(b=>{
+    const end = b.dur>0 ? ' – '+toHHMM(b.min+b.dur) : '';
+    return `<div class="timeline-item"><div class="${categoryBar(b.cat)}"></div>
+      <div class="timeline-item__time">${toHHMM(b.min)}${end}</div>
+      <div class="timeline-item__label">${b.label}</div></div>`;
+  }).join('');
+}
+
+function renderWeekSections(wrap, routine){
+  DAYS_ORDER.forEach(day=>{
+    const isWorkDay = (routine.workDays||[]).includes(day);
+    wrap.appendChild(el('h3','res__section-title', `${DAY_FULL_NAME[day]} ${isWorkDay?'🛠️ dia de trabalho':'🌿 dia livre'}`));
+    wrap.appendChild(el('div','card', buildTimelineHTML(routine.week[day])));
+  });
+}
+
+function renderResult(){
+  const a = state.answers;
+  const routine = state.routine;
+  const wrap = el('div','');
+  wrap.appendChild(el('p','res__eyebrow','SUA ROTINA ANTI-CAOS'));
+  wrap.appendChild(el('h2','res__title', `Oi, ${a.nome} 👋`));
+  wrap.appendChild(el('p','res__sub','Aqui está a estrutura pensada pra sua realidade:'));
+  if(state.submission.message){
+    const status = el('p','submit-status', state.submission.message);
+    status.dataset.type = state.submission.status === 'error' ? 'error' : 'info';
+    wrap.appendChild(status);
+  }
+
+  wrap.appendChild(el('div','card card--insight', `<p><strong>🎯 Regra de ouro pra todo dia:</strong> antes de começar, escolha as <strong>3 prioridades</strong> que precisam ser cumpridas até o fim do dia — não importa o que mais aparecer na frente. É isso que garante que o essencial anda mesmo nos dias de caos. Você vai defini-las direto no seu checklist diário, na aba "Hoje".</p>`));
+
+  wrap.appendChild(el('h3','res__section-title','Sua semana'));
+  renderWeekSections(wrap, routine);
+
+  wrap.appendChild(el('h3','res__section-title','Compromisso semanal'));
+  routine.weekly.forEach(w=>{
+    wrap.appendChild(el('div','card card--weekly', `<p><strong>${w.label}</strong> — ${w.dur}/semana<br>${w.tip}</p>`));
+  });
+
+  const insightText = INSIGHTS[a.rotina_desanda] || DEFAULT_INSIGHT;
+  let insightHTML = `<p>${insightText}</p>`;
+  if(a.inimigo_habitos){
+    insightHTML = `<p class="quote">Você disse: "${a.inimigo_habitos}"</p>` + insightHTML;
+  }
+  wrap.appendChild(el('h3','res__section-title','Análise comportamental'));
+  wrap.appendChild(el('div','card card--insight', insightHTML));
+
+  if(a.saude){
+    wrap.appendChild(el('div','card card--health', `<p><strong>Cuidado especial:</strong> você mencionou "${a.saude}". Sua rotina inclui pausas e blocos flexíveis — ajuste os horários conforme seu corpo pedir, e conte com seu profissional de saúde pra adaptar o que for preciso.</p>`));
+  }
+  if(a.hobby){
+    wrap.appendChild(el('div','card', `<p><strong>Não esqueça do seu hobby:</strong> ${a.hobby}. Inclua ele naturalmente no seu tempo livre sempre que puder.</p>`));
+  }
+  if(a.angustia_desejo){
+    wrap.appendChild(el('h3','res__section-title','O que você nos contou'));
+    wrap.appendChild(el('div','card card--closing', `<p>"${a.angustia_desejo}"</p>`));
+  }
+
+  const actions = el('div','res__actions');
+  const printBtn = el('button','btn-ghost','🖨️ Baixar cronograma (PDF)');
+  printBtn.onclick = ()=>{ fillPrintSheet(a, routine); window.print(); };
+  const startBtn = el('button','btn-primary','Começar minha rotina →');
+  startBtn.onclick = ()=>{ state.screen='dashboard'; state.dashTab='hoje'; render(); };
+  const redoBtn = el('button','btn-link','responder novamente');
+  redoBtn.style.marginTop='8px';
+  redoBtn.onclick = ()=>{
+    if(confirm('Isso vai apagar suas respostas atuais e refazer o quiz. Seus pontos e conquistas continuam guardados. Confirma?')){
+      state.answers={}; state.quizIndex=0; state.routine=null; state.screen='quiz';
+      state.submission_id=createSubmissionId();
+      state.submission={status:'idle', id:null, message:''};
+      render();
+    }
+  };
+  actions.appendChild(startBtn); actions.appendChild(printBtn); actions.appendChild(redoBtn);
+  wrap.appendChild(actions);
+
+  app.appendChild(wrap);
+}
+
+function fillPrintSheet(a, routine){
+  const sheet = document.getElementById('printSheet');
+  let daysHTML = DAYS_ORDER.map(day=>{
+    const isWorkDay = (routine.workDays||[]).includes(day);
+    const rows = routine.week[day].map(b=>{
+      const end = b.dur>0 ? ' – '+toHHMM(b.min+b.dur) : '';
+      return `<div class="p-row"><strong>${toHHMM(b.min)}${end}</strong><span>${b.label}</span></div>`;
+    }).join('');
+    return `<div class="p-section">${DAY_FULL_NAME[day]} ${isWorkDay?'(dia de trabalho)':'(dia livre)'}</div>${rows}`;
+  }).join('');
+  let weekly = routine.weekly.map(w=>`<div class="p-row"><strong>${w.dur}/sem</strong><span>${w.label} — ${w.tip}</span></div>`).join('');
+  sheet.innerHTML = `
+    <div class="p-title">Rotina Anti-Caos — ${a.nome}</div>
+    <div class="p-sub">Método próprio · Júlia Ferreira · gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
+    <div class="p-section" style="font-size:18px;">Sua semana</div>
+    ${daysHTML}
+    <div class="p-section">Compromisso semanal</div>
+    ${weekly}
+  `;
+}
+
+/* ────────────────────────────────────────────────────────────
+   DASHBOARD / GAMIFICATION
+──────────────────────────────────────────────────────────── */
+function todayKey(){ return new Date().toISOString().slice(0,10); }
+function yesterdayKey(){ const d=new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); }
+function currentDayLabel(){ return dayLabelForDate(new Date()); }
+function todaysBlocks(){ return state.routine.week[currentDayLabel()]; }
+
+function taskIdFor(i){ return 'task_'+i; }
+
+function ensureTodayTasks(){
+  const key = todayKey();
+  if(!state.tasksState[key]) state.tasksState[key] = {};
+}
+
+function ensureTodayPriorities(){
+  const key = todayKey();
+  if(!state.priorities[key]) state.priorities[key] = [{text:'',done:false},{text:'',done:false},{text:'',done:false}];
+}
+
+function completedCountForDay(key){
+  return Object.values(state.tasksState[key]||{}).filter(Boolean).length;
+}
+
+function checkAchievements(){
+  ACHIEVEMENTS.forEach(ach=>{
+    if(!state.achievementsUnlocked.includes(ach.id) && ach.check(state)){
+      state.achievementsUnlocked.push(ach.id);
+    }
+  });
+}
+
+function toggleTask(idx){
+  const key = todayKey();
+  ensureTodayTasks();
+  const wasDone = !!state.tasksState[key][idx];
+  state.tasksState[key][idx] = !wasDone;
+  if(!wasDone){
+    state.points += 5;
+    state.totalCompleted += 1;
+  } else {
+    state.points = Math.max(0, state.points-5);
+    state.totalCompleted = Math.max(0, state.totalCompleted-1);
+  }
+  const total = todaysBlocks().length;
+  const doneCount = completedCountForDay(key);
+  if(doneCount===total && !wasDone){
+    if(state.lastPerfectDate !== key){
+      state.perfectDays += 1;
+      if(state.lastPerfectDate === yesterdayKey()){
+        state.streak += 1;
+      } else {
+        state.streak = 1;
+      }
+      state.lastPerfectDate = key;
+    }
+  }
+  checkAchievements();
+  render();
+}
+
+function togglePriority(i){
+  const key = todayKey();
+  ensureTodayPriorities();
+  const p = state.priorities[key][i];
+  if(!p.text.trim()) return;
+  const wasDone = p.done;
+  p.done = !wasDone;
+  if(!wasDone){
+    state.points += 5;
+    state.totalCompleted += 1;
+  } else {
+    state.points = Math.max(0, state.points-5);
+    state.totalCompleted = Math.max(0, state.totalCompleted-1);
+  }
+  if(state.priorities[key].every(x=>x.text.trim() && x.done) && state.lastPriorityPerfectDate!==key){
+    state.priorityPerfectDays = (state.priorityPerfectDays||0)+1;
+    state.lastPriorityPerfectDate = key;
+  }
+  checkAchievements();
+  render();
+}
+
+function updatePriorityText(i, val){
+  const key = todayKey();
+  ensureTodayPriorities();
+  const p = state.priorities[key][i];
+  if(p.done && !val.trim()){
+    p.done = false;
+    state.points = Math.max(0, state.points-5);
+    state.totalCompleted = Math.max(0, state.totalCompleted-1);
+  }
+  p.text = val;
+  save();
+}
+
+function renderDashboard(){
+  ensureTodayTasks();
+  const wrap = el('div','');
+  const header = el('div','dash__header');
+  header.appendChild(el('p','dash__greet', `Olá, ${state.answers.nome||''} 👋`));
+  const stats = el('div','dash__stats');
+  stats.appendChild(el('span','stat-pill gold', `⭐ ${state.points} pts`));
+  stats.appendChild(el('span','stat-pill', `🔥 ${state.streak} dias`));
+  header.appendChild(stats);
+  wrap.appendChild(header);
+
+  const level = Math.floor(state.points/100)+1;
+  const levelProgress = state.points%100;
+  wrap.appendChild(el('p','level-label', `Nível ${level} — ${levelProgress}/100 pts para o próximo nível`));
+  const track = el('div','level-bar-track'); const fill = el('div','level-bar-fill'); fill.style.width=levelProgress+'%';
+  track.appendChild(fill); wrap.appendChild(track);
+
+  const tabs = el('div','tabs');
+  const tabDefs = [['hoje','Hoje'],['conquistas','Conquistas'],['rotina','Minha rotina']];
+  tabDefs.forEach(([key,label])=>{
+    const btn = el('button','tab-btn'+(state.dashTab===key?' active':''), label);
+    btn.onclick=()=>{ state.dashTab=key; render(); };
+    tabs.appendChild(btn);
+  });
+  wrap.appendChild(tabs);
+
+  if(state.dashTab==='hoje') renderTodayTab(wrap);
+  else if(state.dashTab==='conquistas') renderAchievementsTab(wrap);
+  else renderRoutineTab(wrap);
+
+  app.appendChild(wrap);
+}
+
+function renderTodayTab(wrap){
+  const key = todayKey();
+  const dayLabel = currentDayLabel();
+  const tasks = todaysBlocks();
+  ensureTodayPriorities();
+
+  wrap.appendChild(el('h3','res__section-title', `🎯 3 prioridades de hoje`));
+  wrap.appendChild(el('p','quiz__note', `${DAY_FULL_NAME[dayLabel]} — não importa o que mais aparecer, essas 3 coisas precisam ficar prontas até o fim do dia.`));
+  state.priorities[key].forEach((p,i)=>{
+    const row = el('div','task-row'+(p.done?' done':''));
+    const check = el('div','task-check'+(p.done?' done':'')+(!p.text.trim()?' disabled':''), p.done?'✓':'');
+    check.onclick = ()=>togglePriority(i);
+    const body = el('div','task-row__body');
+    const input = el('input','text-input'); input.type='text'; input.placeholder=`Prioridade ${i+1}...`; input.style.marginBottom='0';
+    input.value = p.text;
+    input.oninput = ()=>updatePriorityText(i, input.value);
+    body.appendChild(input);
+    row.appendChild(check); row.appendChild(body); row.appendChild(el('span','task-row__pts','+5'));
+    wrap.appendChild(row);
+  });
+
+  wrap.appendChild(el('h3','res__section-title','Checklist da rotina'));
+  const doneCount = completedCountForDay(key);
+  if(doneCount===tasks.length){
+    wrap.appendChild(el('div','perfect-banner','🎉 Dia perfeito! Você cumpriu 100% da sua rotina hoje.'));
+  }
+  wrap.appendChild(el('p','progress-text', `${doneCount}/${tasks.length} tarefas concluídas hoje`));
+
+  tasks.forEach((b,i)=>{
+    const id = taskIdFor(i);
+    const done = !!state.tasksState[key][id];
+    const row = el('div','task-row'+(done?' done':''));
+    const check = el('div','task-check'+(done?' done':''), done?'✓':'');
+    check.onclick = ()=>toggleTask(id);
+    const body = el('div','task-row__body');
+    const end = b.dur>0 ? ' – '+toHHMM(b.min+b.dur) : '';
+    body.appendChild(el('div','task-row__time', toHHMM(b.min)+end));
+    body.appendChild(el('div','task-row__label', b.label));
+    row.appendChild(check); row.appendChild(body); row.appendChild(el('span','task-row__pts','+5'));
+    wrap.appendChild(row);
+  });
+}
+
+function renderAchievementsTab(wrap){
+  const grid = el('div','ach-grid');
+  ACHIEVEMENTS.forEach(ach=>{
+    const unlocked = state.achievementsUnlocked.includes(ach.id);
+    const card = el('div','ach-card'+(unlocked?'':' locked'));
+    card.appendChild(el('span','ach-card__icon', ach.icon));
+    card.appendChild(el('p','ach-card__name', ach.name));
+    card.appendChild(el('p','ach-card__desc', ach.desc));
+    grid.appendChild(card);
+  });
+  wrap.appendChild(grid);
+}
+
+function renderRoutineTab(wrap){
+  const a = state.answers;
+  renderWeekSections(wrap, state.routine);
+  state.routine.weekly.forEach(w=>{
+    wrap.appendChild(el('div','card card--weekly', `<p><strong>${w.label}</strong> — ${w.dur}/semana<br>${w.tip}</p>`));
+  });
+  const actions = el('div','res__actions');
+  const printBtn = el('button','btn-ghost','🖨️ Baixar cronograma (PDF)');
+  printBtn.onclick = ()=>{ fillPrintSheet(a, state.routine); window.print(); };
+  const redoBtn = el('button','btn-link','refazer o quiz (gera nova rotina)');
+  redoBtn.onclick = ()=>{
+    if(confirm('Isso vai gerar uma nova rotina a partir de novas respostas. Seus pontos, sequência e conquistas continuam guardados. Confirma?')){
+      state.answers={}; state.quizIndex=0; state.routine=null; state.screen='quiz';
+      state.submission_id=createSubmissionId();
+      state.submission={status:'idle', id:null, message:''};
+      render();
+    }
+  };
+  actions.appendChild(printBtn); actions.appendChild(redoBtn);
+  wrap.appendChild(actions);
+}
+
+/* ────────────────────────────────────────────────────────────
+   BOOT
+──────────────────────────────────────────────────────────── */
+if(state.screen==='result' && !state.routine){ state.screen='quiz'; state.quizIndex=0; }
+render();
+</script>
+</body>
+</html>

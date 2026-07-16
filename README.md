@@ -13,6 +13,7 @@ Landing page estatica em Vite para `https://juliaferreiraceo.com.br`.
 - `/`
 - `/opcao-1/`
 - `/imersao-empresa-com-claude-v1/`
+- `/rotina-anti-caos/`
 
 ## Checkout
 
@@ -28,6 +29,12 @@ O formulario do front envia `POST` para:
 
 ```text
 ${VITE_BACKEND_API_BASE_URL}/api/leads
+```
+
+A ferramenta `/rotina-anti-caos/` envia respostas estruturadas para:
+
+```text
+${VITE_BACKEND_API_BASE_URL}/api/rotina-anti-caos
 ```
 
 Variaveis publicas para build no provedor de deploy:
