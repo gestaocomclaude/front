@@ -15,6 +15,20 @@ Landing page estatica em Vite para `https://juliaferreiraceo.com.br`.
 - `/imersao-empresa-com-claude-v1/`
 - `/rotina-anti-caos/`
 
+## Analytics
+
+Todas as paginas HTML do projeto devem incluir o bloco abaixo imediatamente apos a abertura de `<head>`.
+Ao criar uma nova rota/pagina, copie o snippet antes das demais tags do head:
+
+```html
+<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-5SJWHNCX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+</script>
+```
+
 ## Checkout
 
 Configure a URL de checkout no provedor de deploy usando `VITE_CHECKOUT_URL`.
@@ -36,6 +50,14 @@ A ferramenta `/rotina-anti-caos/` envia respostas estruturadas para:
 ```text
 ${VITE_BACKEND_API_BASE_URL}/api/rotina-anti-caos
 ```
+
+A rota `/imersao-empresa-com-claude-v1/` registra visualizacoes em:
+
+```text
+${VITE_BACKEND_API_BASE_URL}/api/page-views
+```
+
+Esses eventos sao gravados no Supabase em `ecc.page_views`.
 
 Variaveis publicas para build no provedor de deploy:
 

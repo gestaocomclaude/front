@@ -7,6 +7,9 @@ if (prefersReducedMotion.matches) {
 const checkoutUrl = import.meta.env.VITE_CHECKOUT_URL || "";
 const backendApiBaseUrl = import.meta.env.VITE_BACKEND_API_BASE_URL || "";
 const leadEndpoint = `${backendApiBaseUrl.replace(/\/$/, "")}/api/leads`;
+const trackedPageViewPath = "/imersao-empresa-com-claude-v1/";
+const pageViewEndpoint = `${backendApiBaseUrl.replace(/\/$/, "")}/api/page-views`;
+const pageViewSessionStorageKey = "ecc_page_view_session_id";
 
 const countdownTimers = document.querySelectorAll("[data-countdown-midnight]");
 const modal = document.querySelector("#lead-modal");
@@ -109,6 +112,73 @@ function getUtms() {
   return utms;
 }
 
+function getPageViewSessionId() {
+  try {
+    const existing = window.localStorage.getItem(pageViewSessionStorageKey);
+    if (existing) return existing;
+
+    const id = window.crypto?.randomUUID?.()
+      || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    window.localStorage.setItem(pageViewSessionStorageKey, id);
+    return id;
+  } catch {
+    return null;
+  }
+}
+
+function sendPageView(payload) {
+  const body = JSON.stringify(payload);
+
+  if (navigator.sendBeacon) {
+    const sent = navigator.sendBeacon(
+      pageViewEndpoint,
+      new Blob([body], { type: "text/plain" }),
+    );
+    if (sent) return;
+  }
+
+  fetch(pageViewEndpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body,
+    keepalive: true,
+  }).catch(() => {});
+}
+
+function trackPageView() {
+  if (!backendApiBaseUrl || window.location.pathname !== trackedPageViewPath) return;
+
+  const utms = getUtms();
+
+  sendPageView({
+    page_path: trackedPageViewPath,
+    page_url: window.location.href,
+    title: document.title,
+    referrer: document.referrer || null,
+    session_id: getPageViewSessionId(),
+    source: "landing-page-view",
+    utm_source: utms.utm_source || null,
+    utm_medium: utms.utm_medium || null,
+    utm_campaign: utms.utm_campaign || null,
+    utm_content: utms.utm_content || null,
+    utm_term: utms.utm_term || null,
+    utms,
+    viewport_width: window.innerWidth,
+    viewport_height: window.innerHeight,
+    screen_width: window.screen?.width || null,
+    screen_height: window.screen?.height || null,
+    language: navigator.language || null,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+    user_agent: navigator.userAgent,
+    metadata: {
+      href: window.location.href,
+      reduced_motion: prefersReducedMotion.matches,
+    },
+  });
+}
+
 function buildPayload(formData) {
   const utms = getUtms();
 
@@ -194,6 +264,7 @@ document.querySelectorAll("[data-close-modal]").forEach((button) => {
 });
 
 form?.addEventListener("submit", submitLead);
+trackPageView();
 
 if (countdownTimers.length) {
   updateCountdownTimers();
