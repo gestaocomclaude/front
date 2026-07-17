@@ -45,6 +45,9 @@ O formulario do front envia `POST` para:
 ${VITE_BACKEND_API_BASE_URL}/api/leads
 ```
 
+O mesmo fluxo faz upsert do lead por e-mail e registra eventos de sessao em `ecc.lead_events`.
+O campo `Instagram @` e opcional; quando preenchido, e salvo em `instagram_handle`.
+
 A ferramenta `/rotina-anti-caos/` envia respostas estruturadas para:
 
 ```text

@@ -9,7 +9,9 @@ const backendApiBaseUrl = import.meta.env.VITE_BACKEND_API_BASE_URL || "";
 const leadEndpoint = `${backendApiBaseUrl.replace(/\/$/, "")}/api/leads`;
 const trackedPageViewPath = "/imersao-empresa-com-claude-v1/";
 const pageViewEndpoint = `${backendApiBaseUrl.replace(/\/$/, "")}/api/page-views`;
-const pageViewSessionStorageKey = "ecc_page_view_session_id";
+const leadEventEndpoint = `${backendApiBaseUrl.replace(/\/$/, "")}/api/lead-events`;
+const sessionStorageKey = "ecc_session_id";
+const legacyPageViewSessionStorageKey = "ecc_page_view_session_id";
 
 const countdownTimers = document.querySelectorAll("[data-countdown-midnight]");
 const modal = document.querySelector("#lead-modal");
@@ -90,6 +92,7 @@ function openModal(event) {
   document.body.classList.add("modal-open");
   setMessage("");
   form.querySelector("input")?.focus();
+  trackLeadEvent("lead_modal_opened");
 }
 
 function closeModal() {
@@ -112,32 +115,75 @@ function getUtms() {
   return utms;
 }
 
-function getPageViewSessionId() {
+function getClickIds() {
+  const params = new URLSearchParams(window.location.search);
+  const clickIds = {};
+
+  for (const key of ["fbclid", "gclid"]) {
+    const value = params.get(key);
+    if (value) clickIds[key] = value;
+  }
+
+  return clickIds;
+}
+
+function getSessionId() {
   try {
-    const existing = window.localStorage.getItem(pageViewSessionStorageKey);
+    const existing = window.localStorage.getItem(sessionStorageKey)
+      || window.localStorage.getItem(legacyPageViewSessionStorageKey);
     if (existing) return existing;
 
     const id = window.crypto?.randomUUID?.()
       || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-    window.localStorage.setItem(pageViewSessionStorageKey, id);
+    window.localStorage.setItem(sessionStorageKey, id);
     return id;
   } catch {
     return null;
   }
 }
 
-function sendPageView(payload) {
+function buildTrackingPayload(eventName = null) {
+  const utms = getUtms();
+  const clickIds = getClickIds();
+
+  return {
+    event_name: eventName,
+    page_path: window.location.pathname,
+    page_url: window.location.href,
+    title: document.title,
+    referrer: document.referrer || null,
+    session_id: getSessionId(),
+    source: "landing-page",
+    utm_source: utms.utm_source || null,
+    utm_medium: utms.utm_medium || null,
+    utm_campaign: utms.utm_campaign || null,
+    utm_content: utms.utm_content || null,
+    utm_term: utms.utm_term || null,
+    fbclid: clickIds.fbclid || null,
+    gclid: clickIds.gclid || null,
+    utms,
+    user_agent: navigator.userAgent,
+    metadata: {
+      href: window.location.href,
+      referrer: document.referrer || null,
+      reduced_motion: prefersReducedMotion.matches,
+      ...clickIds,
+    },
+  };
+}
+
+function sendJsonEvent(endpoint, payload, preferBeacon = false) {
   const body = JSON.stringify(payload);
 
-  if (navigator.sendBeacon) {
+  if (preferBeacon && navigator.sendBeacon) {
     const sent = navigator.sendBeacon(
-      pageViewEndpoint,
+      endpoint,
       new Blob([body], { type: "text/plain" }),
     );
     if (sent) return;
   }
 
-  fetch(pageViewEndpoint, {
+  fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -147,59 +193,55 @@ function sendPageView(payload) {
   }).catch(() => {});
 }
 
+function trackLeadEvent(eventName) {
+  if (!backendApiBaseUrl) return;
+  sendJsonEvent(leadEventEndpoint, buildTrackingPayload(eventName));
+}
+
 function trackPageView() {
   if (!backendApiBaseUrl || window.location.pathname !== trackedPageViewPath) return;
 
-  const utms = getUtms();
-
-  sendPageView({
+  sendJsonEvent(pageViewEndpoint, {
+    ...buildTrackingPayload(),
     page_path: trackedPageViewPath,
-    page_url: window.location.href,
-    title: document.title,
-    referrer: document.referrer || null,
-    session_id: getPageViewSessionId(),
     source: "landing-page-view",
-    utm_source: utms.utm_source || null,
-    utm_medium: utms.utm_medium || null,
-    utm_campaign: utms.utm_campaign || null,
-    utm_content: utms.utm_content || null,
-    utm_term: utms.utm_term || null,
-    utms,
     viewport_width: window.innerWidth,
     viewport_height: window.innerHeight,
     screen_width: window.screen?.width || null,
     screen_height: window.screen?.height || null,
     language: navigator.language || null,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
-    user_agent: navigator.userAgent,
-    metadata: {
-      href: window.location.href,
-      reduced_motion: prefersReducedMotion.matches,
-    },
-  });
+  }, true);
 }
 
 function buildPayload(formData) {
-  const utms = getUtms();
+  const tracking = buildTrackingPayload();
 
   return {
     name: String(formData.get("name") || "").trim(),
     email: String(formData.get("email") || "").trim().toLowerCase(),
     phone: String(formData.get("phone") || "").trim(),
+    instagram_handle: String(formData.get("instagram_handle") || "").trim(),
     website: String(formData.get("website") || "").trim(),
     product_slug: "empresa-com-claude",
     source: "landing-page",
     page: window.location.pathname,
     page_path: window.location.pathname,
+    page_url: window.location.href,
     checkout_url: checkoutUrl,
-    utm_source: utms.utm_source || null,
-    utm_medium: utms.utm_medium || null,
-    utm_campaign: utms.utm_campaign || null,
-    utm_content: utms.utm_content || null,
-    utm_term: utms.utm_term || null,
-    utms,
+    session_id: tracking.session_id,
+    referrer: tracking.referrer,
+    utm_source: tracking.utm_source,
+    utm_medium: tracking.utm_medium,
+    utm_campaign: tracking.utm_campaign,
+    utm_content: tracking.utm_content,
+    utm_term: tracking.utm_term,
+    fbclid: tracking.fbclid,
+    gclid: tracking.gclid,
+    utms: tracking.utms,
     user_agent: navigator.userAgent,
     metadata: {
+      ...tracking.metadata,
       title: document.title,
       referrer: document.referrer || null,
       href: window.location.href,
