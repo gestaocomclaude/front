@@ -13,6 +13,10 @@ Landing page estatica em Vite para `https://juliaferreiraceo.com.br`.
 - `/`
 - `/opcao-1/`
 - `/imersao-empresa-com-claude-v1/`
+- `/imersao-empresa-com-claude-v2/`
+- `/imersao-empresa-com-claude-v3/`
+- `/imersao-empresa-com-claude-v4/`
+- `/imersao-empresa-com-claude-v5/`
 - `/rotina-anti-caos/`
 
 ## Analytics
@@ -28,6 +32,11 @@ Ao criar uma nova rota/pagina, copie o snippet antes das demais tags do head:
   gtag('js', new Date());
 </script>
 ```
+
+Os padroes e URLs prontas de UTM ficam em [`docs/utm-links.md`](docs/utm-links.md).
+
+O roteamento das paginas finais v1/v2/v3/v4/v5 fica documentado em
+[`docs/research/final-variants-routing.md`](docs/research/final-variants-routing.md).
 
 ## Checkout
 
@@ -46,7 +55,7 @@ ${VITE_BACKEND_API_BASE_URL}/api/leads
 ```
 
 O mesmo fluxo faz upsert do lead por e-mail e registra eventos de sessao em `ecc.lead_events`.
-O campo `Instagram @` e opcional; quando preenchido, e salvo em `instagram_handle`.
+A API ainda aceita `instagram_handle`, mas os modais das variantes finais novas nao solicitam mais esse campo.
 
 A ferramenta `/rotina-anti-caos/` envia respostas estruturadas para:
 
@@ -54,7 +63,7 @@ A ferramenta `/rotina-anti-caos/` envia respostas estruturadas para:
 ${VITE_BACKEND_API_BASE_URL}/api/rotina-anti-caos
 ```
 
-A rota `/imersao-empresa-com-claude-v1/` registra visualizacoes em:
+As rotas finais distribuidas pelo roteador `/imersao-empresa-com-claude-v1/` registram visualizacoes em:
 
 ```text
 ${VITE_BACKEND_API_BASE_URL}/api/page-views

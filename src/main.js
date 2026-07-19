@@ -7,13 +7,13 @@ if (prefersReducedMotion.matches) {
 const checkoutUrl = import.meta.env.VITE_CHECKOUT_URL || "";
 const backendApiBaseUrl = import.meta.env.VITE_BACKEND_API_BASE_URL || "";
 const leadEndpoint = `${backendApiBaseUrl.replace(/\/$/, "")}/api/leads`;
-const trackedPageViewPath = "/imersao-empresa-com-claude-v1/";
+const trackedPageViewPattern = /^\/imersao-empresa-com-claude-v[2-5]\/$/;
 const pageViewEndpoint = `${backendApiBaseUrl.replace(/\/$/, "")}/api/page-views`;
 const leadEventEndpoint = `${backendApiBaseUrl.replace(/\/$/, "")}/api/lead-events`;
 const sessionStorageKey = "ecc_session_id";
 const legacyPageViewSessionStorageKey = "ecc_page_view_session_id";
 
-const countdownTimers = document.querySelectorAll("[data-countdown-midnight]");
+const countdownTimers = document.querySelectorAll("[data-countdown-midnight], [data-countdown-target]");
 const modal = document.querySelector("#lead-modal");
 const form = document.querySelector("#lead-form");
 const message = form?.querySelector(".lead-form__message");
@@ -42,12 +42,23 @@ function getNextMidnightForOffset(now, offsetMs) {
   return new Date(nextLocalMidnightUtc - offsetMs);
 }
 
-function formatDuration(ms) {
+function getCountdownTarget(timer, now, offsetMs) {
+  if (timer.dataset.countdownTarget) {
+    const target = new Date(timer.dataset.countdownTarget);
+    if (!Number.isNaN(target.getTime())) return target;
+  }
+
+  return getNextMidnightForOffset(now, offsetMs);
+}
+
+function formatDuration(ms, includeDays = false) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-  const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+  const days = Math.floor(totalSeconds / 86400);
+  const hoursValue = includeDays ? Math.floor((totalSeconds % 86400) / 3600) : Math.floor(totalSeconds / 3600);
+  const hours = String(hoursValue).padStart(2, "0");
   const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
   const seconds = String(totalSeconds % 60).padStart(2, "0");
-  return { hours, minutes, seconds, text: `${hours}:${minutes}:${seconds}` };
+  return { days: String(days).padStart(2, "0"), hours, minutes, seconds, text: includeDays ? `${days}:${hours}:${minutes}:${seconds}` : `${hours}:${minutes}:${seconds}` };
 }
 
 function updateCountdownTimers() {
@@ -57,11 +68,16 @@ function updateCountdownTimers() {
 
   countdownTimers.forEach((timer) => {
     const offsetMs = parseOffsetToMs(timer.dataset.countdownMidnight);
-    const target = getNextMidnightForOffset(now, offsetMs);
-    const duration = formatDuration(target.getTime() - now.getTime());
+    const target = getCountdownTarget(timer, now, offsetMs);
+    const days = timer.querySelector("[data-countdown-days]");
+    const duration = formatDuration(target.getTime() - now.getTime(), Boolean(days));
     const hours = timer.querySelector("[data-countdown-hours]");
     const minutes = timer.querySelector("[data-countdown-minutes]");
     const seconds = timer.querySelector("[data-countdown-seconds]");
+
+    if (days) {
+      days.textContent = duration.days;
+    }
 
     if (hours && minutes && seconds) {
       hours.textContent = duration.hours;
@@ -199,11 +215,10 @@ function trackLeadEvent(eventName) {
 }
 
 function trackPageView() {
-  if (!backendApiBaseUrl || window.location.pathname !== trackedPageViewPath) return;
+  if (!backendApiBaseUrl || !trackedPageViewPattern.test(window.location.pathname)) return;
 
   sendJsonEvent(pageViewEndpoint, {
     ...buildTrackingPayload(),
-    page_path: trackedPageViewPath,
     source: "landing-page-view",
     viewport_width: window.innerWidth,
     viewport_height: window.innerHeight,
