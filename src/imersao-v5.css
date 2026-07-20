@@ -48,10 +48,11 @@ body.immersive-v5 {
     linear-gradient(90deg, rgba(7, 7, 6, .98), rgba(7, 7, 6, .82)),
     radial-gradient(circle at 84% 16%, rgba(217, 119, 87, .28), transparent 31%),
     #070706;
+  align-items: start;
 }
 
 .immersive-v5 .hero-logo-lockup {
-  margin-bottom: 16px;
+  margin-bottom: 44px;
 }
 
 .immersive-v5 .hero-copy h1 {
@@ -120,6 +121,12 @@ body.immersive-v5 {
 @media (min-width: 700px) {
   .immersive-v5 .v1-hero {
     min-height: 640px;
+    padding-top: 31px;
+  }
+
+  .immersive-v5 .hero-media {
+    align-self: center;
+    transform: translateY(-20px);
   }
 
   .immersive-v5 .module-grid {
@@ -140,5 +147,9 @@ body.immersive-v5 {
 
   .immersive-v5 .hero-button {
     width: 100%;
+  }
+
+  .immersive-v5 .hero-logo-lockup {
+    margin-bottom: 24px;
   }
 }

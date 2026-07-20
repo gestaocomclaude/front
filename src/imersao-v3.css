@@ -157,6 +157,7 @@ body.immersive-v3.modal-open { overflow: hidden; }
 .immersive-v3 .hero-copy h1 span { color: var(--v1-orange); }
 
 .immersive-v3 .hero-copy h1 span {
+  display: block;
   white-space: nowrap;
 }
 
@@ -1352,4 +1353,9 @@ body.immersive-v3 {
   width: 100%;
   min-height: 56px;
   margin-top: 4px;
+}
+
+.immersive-v3 .hero-copy h1 span {
+  display: block;
+  white-space: nowrap;
 }
