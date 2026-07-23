@@ -1,3 +1,5 @@
+import Hls from "hls.js";
+
 const backendApiBaseUrl = import.meta.env.VITE_BACKEND_API_BASE_URL || "";
 const apiBase = backendApiBaseUrl.replace(/\/$/, "");
 const sessionStorageKey = "ecc_session_id";
@@ -166,7 +168,6 @@ async function setupVideoSource(videoPage) {
   }
 
   if (isHls) {
-    const { default: Hls } = await import("hls.js");
     if (!Hls.isSupported()) {
       video.src = sourceUrl;
       return;

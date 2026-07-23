@@ -248,11 +248,11 @@ a {
 
 @media (min-width: 820px) {
   .video-shell {
-    padding: 32px;
+    padding: 24px 32px;
   }
 
   .video-stage {
-    width: min(100%, 420px);
+    width: min(100%, 360px);
   }
 
   .video-frame {
