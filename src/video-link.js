@@ -146,7 +146,8 @@ async function loadPage() {
     video.defaultPlaybackRate = 1;
     video.playbackRate = 1;
     video.load();
-    setState("loading");
+    setState("ready");
+    playButton.disabled = false;
     sendEvent("page_view", { once: true, beacon: true });
     sendEvent("video_preload_started", { once: true });
   } catch (error) {
@@ -193,9 +194,11 @@ function unlockReadyState() {
 }
 
 async function playVideo() {
-  if (!video || !page || playButton.disabled) return;
+  if (!video || !page) return;
 
   try {
+    playButton.disabled = true;
+    statusText.textContent = "Iniciando video...";
     video.playbackRate = 1;
     await video.play();
     isPlaying = true;
@@ -203,6 +206,7 @@ async function playVideo() {
     sendEvent("play_started", { once: true });
   } catch {
     statusText.textContent = "Toque novamente para iniciar o video.";
+    playButton.disabled = false;
   }
 }
 

@@ -129,6 +129,8 @@ URL publica de HLS:
 https://apifront.juliaferreiraceo.com.br/hls/<slug>/master.m3u8
 ```
 
+O script HLS gera segmentos de 2 segundos. O endpoint `GET /api/video-pages/:slug` e cacheavel por 5 minutos para reduzir latencia em acessos repetidos.
+
 O prompt para construir o painel no projeto do CRM esta em:
 
 ```text

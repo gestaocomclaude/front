@@ -252,6 +252,8 @@ Saida publica esperada:
 https://apifront.juliaferreiraceo.com.br/hls/recuperacao-carrinho/master.m3u8
 ```
 
+O script HLS gera segmentos de 2 segundos para reduzir o tempo ate o primeiro play. Videos ja processados antes dessa regra devem ser reprocessados se precisarem do mesmo ganho de inicio.
+
 O backend do CRM deve:
 
 ```text
