@@ -166,7 +166,10 @@ function getVideoPageResponse(slug) {
 
 function preloadVideoAssets(videoPage) {
   const urls = Array.isArray(videoPage.preload_urls) ? videoPage.preload_urls : [];
-  urls.slice(0, 2).forEach((url) => {
+  const selectedSourceUrl = getSelectedSourceUrl(videoPage);
+  const preloadUrls = selectedSourceUrl ? [selectedSourceUrl, ...urls.filter((url) => url !== selectedSourceUrl)] : urls;
+
+  preloadUrls.slice(0, 2).forEach((url) => {
     if (!url) return;
 
     const link = document.createElement("link");
@@ -178,9 +181,24 @@ function preloadVideoAssets(videoPage) {
   });
 }
 
+function isLikelyMobile() {
+  return window.matchMedia("(pointer: coarse)").matches
+    || window.matchMedia("(max-width: 820px)").matches
+    || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+function getSelectedSourceUrl(videoPage) {
+  const hlsSourceUrl = videoPage.stream_url || videoPage.video_url;
+  if (isLikelyMobile() && videoPage.mobile_fallback_url) {
+    return videoPage.mobile_fallback_url;
+  }
+
+  return hlsSourceUrl;
+}
+
 async function setupVideoSource(videoPage) {
-  const sourceUrl = videoPage.stream_url || videoPage.video_url;
-  const isHls = videoPage.video_type === "hls" || /\.m3u8(?:$|\?)/.test(sourceUrl);
+  const sourceUrl = getSelectedSourceUrl(videoPage);
+  const isHls = /\.m3u8(?:$|\?)/.test(sourceUrl);
 
   hls?.destroy?.();
   hls = null;
