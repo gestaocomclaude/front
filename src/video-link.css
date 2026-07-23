@@ -76,6 +76,11 @@ a {
   transition: filter 220ms ease, transform 220ms ease;
 }
 
+.bunny-embed {
+  border: 0;
+  pointer-events: none;
+}
+
 .video-shell[data-state="playing"] .locked-video,
 .video-shell[data-state="completed"] .locked-video {
   filter: none;

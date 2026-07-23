@@ -34,7 +34,7 @@ alter table ecc.video_pages
 
 alter table ecc.video_pages
   drop constraint if exists video_pages_video_type_chk,
-  add constraint video_pages_video_type_chk check (video_type in ('mp4', 'hls'));
+  add constraint video_pages_video_type_chk check (video_type in ('mp4', 'hls', 'embed'));
 
 alter table ecc.video_pages
   drop constraint if exists video_pages_processing_status_chk,

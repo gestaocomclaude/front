@@ -16,6 +16,10 @@ const sentEvents = new Set();
 let page = null;
 let isPlaying = false;
 let hls = null;
+let embedIframe = null;
+let embedPlayer = null;
+let embedDuration = null;
+let embedCurrentTime = null;
 
 function setState(state) {
   shell?.setAttribute("data-state", state);
@@ -55,8 +59,8 @@ function getUtms() {
 
 function buildEventPayload(eventType) {
   const utms = getUtms();
-  const duration = Number.isFinite(video?.duration) ? video.duration : null;
-  const currentTime = Number.isFinite(video?.currentTime) ? video.currentTime : null;
+  const duration = Number.isFinite(embedDuration) ? embedDuration : Number.isFinite(video?.duration) ? video.duration : null;
+  const currentTime = Number.isFinite(embedCurrentTime) ? embedCurrentTime : Number.isFinite(video?.currentTime) ? video.currentTime : null;
   const progress = duration && currentTime ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : null;
 
   return {
@@ -165,6 +169,8 @@ function getVideoPageResponse(slug) {
 }
 
 function preloadVideoAssets(videoPage) {
+  if (videoPage.video_type === "embed") return;
+
   const urls = Array.isArray(videoPage.preload_urls) ? videoPage.preload_urls : [];
   const selectedSourceUrl = getSelectedSourceUrl(videoPage);
   const preloadUrls = selectedSourceUrl ? [selectedSourceUrl, ...urls.filter((url) => url !== selectedSourceUrl)] : urls;
@@ -198,11 +204,23 @@ function getSelectedSourceUrl(videoPage) {
 
 async function setupVideoSource(videoPage) {
   const sourceUrl = getSelectedSourceUrl(videoPage);
+  const isEmbed = videoPage.video_type === "embed" || /player\.mediadelivery\.net\/embed\//.test(sourceUrl);
   const isHls = /\.m3u8(?:$|\?)/.test(sourceUrl);
 
   hls?.destroy?.();
   hls = null;
+  embedPlayer = null;
+  embedIframe?.remove?.();
+  embedIframe = null;
+  embedDuration = null;
+  embedCurrentTime = null;
   video.removeAttribute("src");
+  video.hidden = false;
+
+  if (isEmbed) {
+    setupEmbedSource(sourceUrl);
+    return "embed";
+  }
 
   if (isHls && video.canPlayType("application/vnd.apple.mpegurl")) {
     video.src = sourceUrl;
@@ -234,6 +252,48 @@ async function setupVideoSource(videoPage) {
   return "file";
 }
 
+function setupEmbedSource(sourceUrl) {
+  const uniqueUrl = new URL(sourceUrl);
+  uniqueUrl.searchParams.set("preload", "true");
+  uniqueUrl.searchParams.set("responsive", "true");
+  uniqueUrl.searchParams.set("_ecc", getSessionId());
+
+  video.hidden = true;
+  embedIframe = document.createElement("iframe");
+  embedIframe.className = "locked-video bunny-embed";
+  embedIframe.src = uniqueUrl.toString();
+  embedIframe.loading = "eager";
+  embedIframe.allow = "accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen";
+  embedIframe.allowFullscreen = true;
+  embedIframe.setAttribute("data-bunny-embed", "");
+  embedIframe.setAttribute("title", page?.title || "Video");
+  video.insertAdjacentElement("afterend", embedIframe);
+
+  if (!window.playerjs?.Player) {
+    unlockReadyState();
+    return;
+  }
+
+  embedPlayer = new window.playerjs.Player(embedIframe);
+  embedPlayer.on("ready", () => {
+    embedPlayer?.getDuration?.((duration) => {
+      embedDuration = Number(duration);
+    });
+    unlockReadyState();
+  });
+  embedPlayer.on("play", () => {
+    isPlaying = true;
+    setState("playing");
+    sendEvent("play_started", { once: true });
+  });
+  embedPlayer.on("timeupdate", (data) => {
+    embedCurrentTime = Number(data?.seconds);
+    embedDuration = Number(data?.duration);
+    trackProgress();
+  });
+  embedPlayer.on("ended", completeVideo);
+}
+
 function unlockReadyState() {
   if (!page || isPlaying) return;
   setState("ready");
@@ -245,6 +305,10 @@ async function playVideo() {
 
   try {
     playButton.disabled = true;
+    if (embedPlayer) {
+      embedPlayer.play();
+      return;
+    }
     hls?.startLoad?.(0);
     video.playbackRate = 1;
     await video.play();
@@ -264,8 +328,10 @@ function enforcePlaybackRate() {
 }
 
 function trackProgress() {
-  if (!video?.duration) return;
-  const progress = (video.currentTime / video.duration) * 100;
+  const duration = Number.isFinite(embedDuration) ? embedDuration : video?.duration;
+  const currentTime = Number.isFinite(embedCurrentTime) ? embedCurrentTime : video?.currentTime;
+  if (!duration) return;
+  const progress = (currentTime / duration) * 100;
   updateProgressBar(progress);
 
   if (progress >= 25) sendEvent("progress_25", { once: true });
