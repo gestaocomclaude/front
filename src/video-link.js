@@ -379,6 +379,13 @@ function enableEmbedDirectPlayback() {
   sendEvent("player_play_timeout", { once: true });
 }
 
+function enableInstagramDirectPlayback() {
+  if (!embedIframe || isPlaying) return;
+  setState("instagram-unlocked");
+  playButton.disabled = false;
+  sendEvent("player_instagram_direct_unlocked", { once: true });
+}
+
 function unlockReadyState() {
   if (!page || isPlaying) return;
   setState(isEmbedMode && isInstagramAndroidWebView() ? "instagram-direct" : "ready");
@@ -398,6 +405,11 @@ async function playVideo() {
     playButton.disabled = true;
     if (isEmbedMode) {
       sendEvent("player_play_command", { once: true });
+      if (isInstagramAndroidWebView()) {
+        enableInstagramDirectPlayback();
+        return;
+      }
+
       playRetryDelays.forEach((delay) => {
         window.setTimeout(() => {
           if (!isPlaying && !isCompleted) requestEmbedPlay();

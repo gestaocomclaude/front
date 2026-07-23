@@ -71,6 +71,7 @@ create table if not exists ecc.video_events (
       'player_play_command',
       'player_play_confirmed',
       'player_play_timeout',
+      'player_instagram_direct_unlocked',
       'play_started',
       'progress_25',
       'progress_50',

@@ -93,7 +93,15 @@ a {
 }
 
 .video-shell[data-state="instagram-direct"] .bunny-embed {
+  pointer-events: none;
+}
+
+.video-shell[data-state="instagram-unlocked"] .bunny-embed {
   pointer-events: auto;
+}
+
+.video-shell[data-state="instagram-unlocked"] .video-scrim {
+  display: none !important;
 }
 
 .video-shell[data-state="playing"] .locked-video,
@@ -115,14 +123,10 @@ a {
 
 .video-shell[data-state="playing"] .video-scrim,
 .video-shell[data-state="embed-fallback"] .video-scrim,
+.video-shell[data-state="instagram-unlocked"] .video-scrim,
 .video-shell[data-state="completed"] .video-scrim {
   opacity: 0;
   visibility: hidden;
-  pointer-events: none;
-}
-
-.video-shell[data-state="instagram-direct"] .video-scrim,
-.video-shell[data-state="instagram-direct"] .play-button {
   pointer-events: none;
 }
 
