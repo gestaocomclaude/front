@@ -79,6 +79,7 @@ a {
 .bunny-embed {
   position: absolute;
   inset: 0;
+  z-index: 1;
   border: 0;
   background: #000;
   filter: none !important;
@@ -100,6 +101,7 @@ a {
 .video-scrim {
   position: absolute;
   inset: 0;
+  z-index: 3;
   display: grid;
   place-items: center;
   padding: 24px;
@@ -176,6 +178,7 @@ a {
 
 .video-loading {
   position: absolute;
+  z-index: 4;
   left: 50%;
   bottom: 28px;
   max-width: calc(100% - 36px);
@@ -198,11 +201,13 @@ a {
 
 .video-progress {
   position: absolute;
+  z-index: 4;
   left: 0;
   right: 0;
   bottom: 0;
   height: 8px;
   overflow: hidden;
+  pointer-events: none;
   background: rgba(24, 21, 18, 0.24);
 }
 

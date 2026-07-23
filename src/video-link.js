@@ -21,6 +21,8 @@ let embedPlayer = null;
 let embedDuration = null;
 let embedCurrentTime = null;
 let embedPlayFallbackTimer = null;
+let embedProgressTimer = null;
+let embedPlayStartedAt = null;
 let isEmbedMode = false;
 let isCompleted = false;
 
@@ -223,6 +225,7 @@ async function setupVideoSource(videoPage) {
   embedCurrentTime = null;
   window.clearTimeout(embedPlayFallbackTimer);
   embedPlayFallbackTimer = null;
+  stopEmbedProgressTimer();
   isEmbedMode = false;
   isCompleted = false;
   video.removeAttribute("src");
@@ -298,6 +301,7 @@ function setupEmbedSource(sourceUrl) {
     embedPlayFallbackTimer = null;
     isPlaying = true;
     setState("playing");
+    startEmbedProgressTimer();
     sendEvent("play_started", { once: true });
   });
   embedPlayer.on("timeupdate", (data) => {
@@ -314,14 +318,6 @@ function enableEmbedDirectPlayback() {
   playButton.disabled = false;
 }
 
-function refreshEmbedAutoplayUrl() {
-  if (!embedIframe) return;
-  const autoplayUrl = new URL(embedIframe.src);
-  if (autoplayUrl.searchParams.get("autoplay") === "true") return;
-  autoplayUrl.searchParams.set("autoplay", "true");
-  embedIframe.src = autoplayUrl.toString();
-}
-
 function unlockReadyState() {
   if (!page || isPlaying) return;
   setState("ready");
@@ -334,8 +330,8 @@ async function playVideo() {
   try {
     playButton.disabled = true;
     if (isEmbedMode) {
-      refreshEmbedAutoplayUrl();
       embedPlayer?.play?.();
+      startEmbedProgressTimer();
 
       window.clearTimeout(embedPlayFallbackTimer);
       embedPlayFallbackTimer = window.setTimeout(() => {
@@ -365,6 +361,10 @@ function trackProgress() {
   const duration = Number.isFinite(embedDuration) ? embedDuration : video?.duration;
   const currentTime = Number.isFinite(embedCurrentTime) ? embedCurrentTime : video?.currentTime;
   if (!duration) return;
+  handleProgress(duration, currentTime);
+}
+
+function handleProgress(duration, currentTime) {
   const progress = (currentTime / duration) * 100;
   updateProgressBar(progress);
 
@@ -373,6 +373,32 @@ function trackProgress() {
   if (progress >= 75) sendEvent("progress_75", { once: true });
 
   if (duration - currentTime <= 1) completeVideo();
+}
+
+function startEmbedProgressTimer() {
+  if (!isEmbedMode || embedProgressTimer) return;
+  embedPlayStartedAt = window.performance.now() - Math.max(0, Number(embedCurrentTime) || 0) * 1000;
+  embedProgressTimer = window.setInterval(() => {
+    if (isCompleted) {
+      stopEmbedProgressTimer();
+      return;
+    }
+
+    if (!Number.isFinite(embedDuration)) return;
+
+    const estimatedCurrentTime = Math.max(0, (window.performance.now() - embedPlayStartedAt) / 1000);
+    const currentTime = Number.isFinite(embedCurrentTime)
+      ? Math.max(embedCurrentTime, estimatedCurrentTime)
+      : estimatedCurrentTime;
+
+    handleProgress(embedDuration, Math.min(currentTime, embedDuration));
+  }, 250);
+}
+
+function stopEmbedProgressTimer() {
+  window.clearInterval(embedProgressTimer);
+  embedProgressTimer = null;
+  embedPlayStartedAt = null;
 }
 
 function updateProgressBar(progress) {
@@ -384,6 +410,7 @@ function updateProgressBar(progress) {
 function completeVideo() {
   if (isCompleted) return;
   isCompleted = true;
+  stopEmbedProgressTimer();
   setState("completed");
   updateProgressBar(100);
   finalCta.hidden = false;
