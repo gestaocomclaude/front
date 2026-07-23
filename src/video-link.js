@@ -13,6 +13,7 @@ const stage = document.querySelector(".video-stage");
 const progressBar = document.querySelector("[data-progress-bar]");
 
 const sentEvents = new Set();
+const playRetryDelays = [0, 120, 420, 900];
 let page = null;
 let isPlaying = false;
 let hls = null;
@@ -32,6 +33,46 @@ function setState(state) {
 
 function isInAppBrowser() {
   return /Instagram|FBAN|FBAV|FB_IAB|Line\/|TikTok|Twitter|LinkedInApp/i.test(navigator.userAgent);
+}
+
+function getBrowserProfile() {
+  const ua = navigator.userAgent;
+  const isInstagram = /Instagram/i.test(ua);
+  const isFacebookIab = /FBAN|FBAV|FB_IAB/i.test(ua);
+  const isAndroidWebView = /; wv\)/i.test(ua) || /\bwv\b/i.test(ua);
+
+  return {
+    user_agent: ua,
+    user_agent_data: navigator.userAgentData
+      ? {
+          brands: navigator.userAgentData.brands,
+          mobile: navigator.userAgentData.mobile,
+          platform: navigator.userAgentData.platform,
+        }
+      : null,
+    browser_group: isInstagram
+      ? "instagram"
+      : isFacebookIab
+        ? "facebook_iab"
+        : isAndroidWebView
+          ? "android_webview"
+          : /CriOS/i.test(ua)
+            ? "chrome_ios"
+            : /Chrome/i.test(ua)
+              ? "chrome"
+              : /Safari/i.test(ua)
+                ? "safari_or_webkit"
+                : "other",
+    is_in_app_browser: isInAppBrowser(),
+    is_instagram: isInstagram,
+    is_android_webview: isAndroidWebView,
+    platform: navigator.platform || null,
+    language: navigator.language || null,
+    languages: navigator.languages || [],
+    device_pixel_ratio: window.devicePixelRatio || null,
+    screen_width: window.screen?.width || null,
+    screen_height: window.screen?.height || null,
+  };
 }
 
 function getSlug() {
@@ -93,7 +134,14 @@ function buildEventPayload(eventType) {
     metadata: {
       title: document.title,
       href: window.location.href,
+      video_state: shell?.getAttribute("data-state") || null,
+      is_embed_mode: isEmbedMode,
+      is_playing: isPlaying,
+      is_completed: isCompleted,
+      embed_duration: Number.isFinite(embedDuration) ? embedDuration : null,
+      embed_current_time: Number.isFinite(embedCurrentTime) ? embedCurrentTime : null,
       reduced_motion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+      browser: getBrowserProfile(),
     },
   };
 }
@@ -269,8 +317,13 @@ async function setupVideoSource(videoPage) {
 function setupEmbedSource(sourceUrl) {
   isEmbedMode = true;
   const uniqueUrl = new URL(sourceUrl);
+  uniqueUrl.searchParams.set("autoplay", "false");
+  uniqueUrl.searchParams.set("muted", "false");
+  uniqueUrl.searchParams.set("playsinline", "true");
   uniqueUrl.searchParams.set("preload", "true");
   uniqueUrl.searchParams.set("responsive", "true");
+  uniqueUrl.searchParams.set("rememberPosition", "false");
+  uniqueUrl.searchParams.set("disableIosPlayer", "true");
   uniqueUrl.searchParams.set("_ecc", getSessionId());
 
   video.hidden = true;
@@ -295,6 +348,7 @@ function setupEmbedSource(sourceUrl) {
       embedDuration = Number(duration);
     });
     unlockReadyState();
+    sendEvent("player_ready", { once: true });
   });
   embedPlayer.on("play", () => {
     window.clearTimeout(embedPlayFallbackTimer);
@@ -302,6 +356,7 @@ function setupEmbedSource(sourceUrl) {
     isPlaying = true;
     setState("playing");
     startEmbedProgressTimer();
+    sendEvent("player_play_confirmed", { once: true });
     sendEvent("play_started", { once: true });
   });
   embedPlayer.on("timeupdate", (data) => {
@@ -314,8 +369,9 @@ function setupEmbedSource(sourceUrl) {
 
 function enableEmbedDirectPlayback() {
   if (!embedIframe || isPlaying) return;
-  setState("embed-fallback");
+  setState("ready");
   playButton.disabled = false;
+  sendEvent("player_play_timeout", { once: true });
 }
 
 function unlockReadyState() {
@@ -330,8 +386,12 @@ async function playVideo() {
   try {
     playButton.disabled = true;
     if (isEmbedMode) {
-      embedPlayer?.play?.();
-      startEmbedProgressTimer();
+      sendEvent("player_play_command", { once: true });
+      playRetryDelays.forEach((delay) => {
+        window.setTimeout(() => {
+          if (!isPlaying && !isCompleted) embedPlayer?.play?.();
+        }, delay);
+      });
 
       window.clearTimeout(embedPlayFallbackTimer);
       embedPlayFallbackTimer = window.setTimeout(() => {

@@ -89,7 +89,7 @@ a {
 }
 
 .video-shell[data-state="embed-fallback"] .bunny-embed {
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .video-shell[data-state="playing"] .locked-video,
@@ -176,29 +176,6 @@ a {
   outline-offset: 4px;
 }
 
-.video-loading {
-  position: absolute;
-  z-index: 4;
-  left: 50%;
-  bottom: 28px;
-  max-width: calc(100% - 36px);
-  transform: translateX(-50%);
-  padding: 8px 12px;
-  border: 1px solid rgba(24, 21, 18, 0.2);
-  border-radius: 999px;
-  background: rgba(245, 239, 230, 0.88);
-  color: var(--graphite);
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.video-shell[data-state="ready"] .video-loading,
-.video-shell[data-state="playing"] .video-loading,
-.video-shell[data-state="completed"] .video-loading {
-  display: none;
-}
-
 .video-progress {
   position: absolute;
   z-index: 4;
@@ -246,6 +223,10 @@ a {
 .final-cta {
   width: 100%;
   padding: 0 24px;
+}
+
+.video-shell:not([data-state="completed"]) .final-cta {
+  display: none !important;
 }
 
 .final-cta[hidden] {

@@ -67,6 +67,10 @@ create table if not exists ecc.video_events (
     event_type in (
       'page_view',
       'video_preload_started',
+      'player_ready',
+      'player_play_command',
+      'player_play_confirmed',
+      'player_play_timeout',
       'play_started',
       'progress_25',
       'progress_50',
