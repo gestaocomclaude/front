@@ -22,6 +22,7 @@ let embedDuration = null;
 let embedCurrentTime = null;
 let embedPlayFallbackTimer = null;
 let isEmbedMode = false;
+let isCompleted = false;
 
 function setState(state) {
   shell?.setAttribute("data-state", state);
@@ -223,6 +224,7 @@ async function setupVideoSource(videoPage) {
   window.clearTimeout(embedPlayFallbackTimer);
   embedPlayFallbackTimer = null;
   isEmbedMode = false;
+  isCompleted = false;
   video.removeAttribute("src");
   video.hidden = false;
 
@@ -369,6 +371,8 @@ function trackProgress() {
   if (progress >= 25) sendEvent("progress_25", { once: true });
   if (progress >= 50) sendEvent("progress_50", { once: true });
   if (progress >= 75) sendEvent("progress_75", { once: true });
+
+  if (duration - currentTime <= 1) completeVideo();
 }
 
 function updateProgressBar(progress) {
@@ -378,6 +382,8 @@ function updateProgressBar(progress) {
 }
 
 function completeVideo() {
+  if (isCompleted) return;
+  isCompleted = true;
   setState("completed");
   updateProgressBar(100);
   finalCta.hidden = false;
