@@ -7,6 +7,12 @@ create table if not exists ecc.video_pages (
   slug text not null unique,
   title text not null,
   video_url text not null,
+  video_type text not null default 'mp4',
+  source_video_url text,
+  stream_url text,
+  processing_status text not null default 'ready',
+  processing_error text,
+  processed_at timestamptz,
   play_button_label text not null default 'clique para assistir',
   cta_label text not null,
   cta_url text not null,
@@ -17,6 +23,22 @@ create table if not exists ecc.video_pages (
 
 alter table ecc.video_pages
   add column if not exists play_button_label text not null default 'clique para assistir';
+
+alter table ecc.video_pages
+  add column if not exists video_type text not null default 'mp4',
+  add column if not exists source_video_url text,
+  add column if not exists stream_url text,
+  add column if not exists processing_status text not null default 'ready',
+  add column if not exists processing_error text,
+  add column if not exists processed_at timestamptz;
+
+alter table ecc.video_pages
+  drop constraint if exists video_pages_video_type_chk,
+  add constraint video_pages_video_type_chk check (video_type in ('mp4', 'hls'));
+
+alter table ecc.video_pages
+  drop constraint if exists video_pages_processing_status_chk,
+  add constraint video_pages_processing_status_chk check (processing_status in ('pending', 'processing', 'ready', 'failed'));
 
 create table if not exists ecc.video_events (
   id bigint generated always as identity primary key,

@@ -15,6 +15,7 @@ const progressBar = document.querySelector("[data-progress-bar]");
 const sentEvents = new Set();
 let page = null;
 let isPlaying = false;
+let hls = null;
 
 function setState(state) {
   shell?.setAttribute("data-state", state);
@@ -138,7 +139,7 @@ async function loadPage() {
     statusText.textContent = "Clique para assistir. O proximo passo aparece quando o video terminar.";
     finalCta.textContent = page.cta_label || "continuar";
     finalCta.href = page.cta_url;
-    video.src = page.video_url;
+    await setupVideoSource(page);
     video.controls = false;
     video.defaultPlaybackRate = 1;
     video.playbackRate = 1;
@@ -149,6 +150,39 @@ async function loadPage() {
   } catch (error) {
     showUnavailable(error instanceof Error ? error.message : "Video nao encontrado");
   }
+}
+
+async function setupVideoSource(videoPage) {
+  const sourceUrl = videoPage.stream_url || videoPage.video_url;
+  const isHls = videoPage.video_type === "hls" || /\.m3u8(?:$|\?)/.test(sourceUrl);
+
+  hls?.destroy?.();
+  hls = null;
+  video.removeAttribute("src");
+
+  if (isHls && video.canPlayType("application/vnd.apple.mpegurl")) {
+    video.src = sourceUrl;
+    return;
+  }
+
+  if (isHls) {
+    const { default: Hls } = await import("hls.js");
+    if (!Hls.isSupported()) {
+      video.src = sourceUrl;
+      return;
+    }
+
+    hls = new Hls({
+      enableWorker: true,
+      lowLatencyMode: false,
+      backBufferLength: 30,
+    });
+    hls.loadSource(sourceUrl);
+    hls.attachMedia(video);
+    return;
+  }
+
+  video.src = sourceUrl;
 }
 
 function unlockReadyState() {

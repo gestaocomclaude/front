@@ -79,14 +79,17 @@ Funcionalidades obrigatorias:
 2. Criar nova pagina.
 3. Editar pagina existente.
 4. Ativar/desativar pagina.
-5. Selecionar um video vertical ja existente no storage, sem fazer novo upload.
-6. Fazer upload somente do video vertical quando o arquivo ainda nao existir.
-7. Salvar a URL publica do video em ecc.video_pages.video_url.
-8. Definir texto do botao inicial em play_button_label.
-9. Definir texto do botao final em cta_label.
-10. Definir link final em cta_url.
-11. Ler e exibir metricas imediatas.
-12. Filtrar metricas por data, slug, utm_source e utm_campaign.
+5. Selecionar um video HLS ja processado, sem fazer novo upload/processamento.
+6. Selecionar um MP4 ja carregado no storage/entrada, sem fazer novo upload.
+7. Fazer upload somente do MP4 vertical quando o arquivo ainda nao existir.
+8. Processar MP4 para HLS usando FFmpeg na VPS.
+9. Salvar a URL original em `source_video_url` e a URL HLS em `stream_url`.
+10. Manter `video_url` preenchido por compatibilidade, preferencialmente com a URL final tocavel.
+11. Definir texto do botao inicial em play_button_label.
+12. Definir texto do botao final em cta_label.
+13. Definir link final em cta_url.
+14. Ler e exibir metricas imediatas.
+15. Filtrar metricas por data, slug, utm_source e utm_campaign.
 ```
 
 ## Tabelas
@@ -102,6 +105,12 @@ id
 slug
 title
 video_url
+video_type
+source_video_url
+stream_url
+processing_status
+processing_error
+processed_at
 play_button_label
 cta_label
 cta_url
@@ -210,13 +219,66 @@ Para o painel administrativo, prefira leitura server-side pelo backend do CRM qu
 O painel deve oferecer duas formas de definir o video:
 
 ```text
-1. Selecionar video ja carregado no storage.
-2. Enviar novo video quando ainda nao existir.
+1. Selecionar HLS ja processado.
+2. Selecionar MP4 ja carregado para processar.
+3. Enviar novo MP4 quando ainda nao existir.
 ```
 
 Isso evita fazer um segundo upload quando o video ja estiver disponivel.
 
-O upload novo, quando necessario, deve ir para o Supabase Storage da VPS:
+## Processamento HLS na VPS
+
+FFmpeg ja esta instalado na VPS do front e existe um script pronto:
+
+```text
+/opt/front-julia/video-streaming/scripts/process-hls.sh
+```
+
+Uso:
+
+```bash
+/opt/front-julia/video-streaming/scripts/process-hls.sh <slug> <arquivo-mp4>
+```
+
+Exemplo:
+
+```bash
+/opt/front-julia/video-streaming/scripts/process-hls.sh recuperacao-carrinho /opt/front-julia/video-streaming/incoming/recuperacao-carrinho.mp4
+```
+
+Saida publica esperada:
+
+```text
+https://apifront.juliaferreiraceo.com.br/hls/recuperacao-carrinho/master.m3u8
+```
+
+O backend do CRM deve:
+
+```text
+1. Validar slug.
+2. Salvar ou localizar o MP4 de entrada.
+3. Marcar processing_status = 'processing'.
+4. Executar o script process-hls.sh de forma server-side.
+5. Se sucesso:
+   - video_type = 'hls'
+   - source_video_url = URL/caminho do MP4 original
+   - stream_url = https://apifront.juliaferreiraceo.com.br/hls/<slug>/master.m3u8
+   - video_url = mesmo valor de stream_url, por compatibilidade
+   - processing_status = 'ready'
+   - processing_error = null
+   - processed_at = now()
+6. Se falhar:
+   - processing_status = 'failed'
+   - processing_error = mensagem resumida do erro
+```
+
+O upload novo, quando necessario, pode ir para a pasta de entrada da VPS:
+
+```text
+/opt/front-julia/video-streaming/incoming
+```
+
+Ou para o Supabase Storage da VPS:
 
 ```text
 https://bd.trilhadogpt.com
@@ -233,17 +295,19 @@ audio AAC
 arquivo comprimido
 ```
 
-Depois do upload, salve a URL publica em:
+Depois do processamento, salve a URL publica HLS em:
+
+```text
+ecc.video_pages.stream_url
+```
+
+Para compatibilidade, mantenha tambem:
 
 ```text
 ecc.video_pages.video_url
 ```
 
-Para selecionar video existente, liste os objetos do bucket `video-pages`, gere/mostre a URL publica e salve essa URL no mesmo campo:
-
-```text
-ecc.video_pages.video_url
-```
+com o mesmo valor de `stream_url`.
 
 ## UX do painel
 Inclua:
@@ -254,7 +318,9 @@ Validacao de slug em tempo real.
 Preview da URL publica.
 Indicador de upload em progresso.
 Erro claro se upload falhar.
-Campo para escolher video ja existente no storage.
+Campo para escolher video ja existente no storage ou HLS ja processado.
+Status visual de processamento: pendente, processando, pronto, falhou.
+Mensagem de erro quando `processing_status = failed`.
 Botao de copiar URL.
 Toggle de ativo/inativo.
 Cards de metricas no topo.
@@ -267,10 +333,12 @@ Filtros por periodo e UTM.
 ```text
 1. Criar pagina ativa no CRM gera uma URL publica funcional sem redeploy.
 2. Upload salva somente o video, sem capa.
-3. Se o video ja existir no storage, o painel permite selecionar sem novo upload.
-4. O texto do botao inicial pode ser personalizado por pagina via `play_button_label`.
-5. Primeiro frame do video e usado pelo front publico como capa turva.
-6. O CTA publico so aparece quando o video termina.
-7. Metricas aparecem no painel desde a primeira versao.
-8. Nenhuma chave sensivel aparece no bundle do navegador.
+3. Se o video ja existir no storage ou ja estiver processado em HLS, o painel permite selecionar sem novo upload.
+4. MP4 novo pode ser processado para HLS na VPS via FFmpeg.
+5. O front publico deve receber `video_type = hls` e `stream_url` quando o processamento estiver pronto.
+6. O texto do botao inicial pode ser personalizado por pagina via `play_button_label`.
+7. Primeiro frame do video e usado pelo front publico como capa turva.
+8. O CTA publico so aparece quando o video termina.
+9. Metricas aparecem no painel desde a primeira versao.
+10. Nenhuma chave sensivel aparece no bundle do navegador.
 ```

@@ -88,6 +88,7 @@ ${VITE_BACKEND_API_BASE_URL}/api/video-pages/:slug
 
 O video fica em formato vertical, pre-carrega antes do clique, usa o primeiro frame como capa turva e libera o CTA final apenas apos o evento `ended`.
 O texto do botao inicial vem de `ecc.video_pages.play_button_label`, com fallback `clique para assistir`.
+Videos HLS usam `ecc.video_pages.stream_url` e `video_type=hls`; o front usa `hls.js` quando o navegador nao suporta `.m3u8` nativamente.
 
 Eventos e metricas sao registrados desde a primeira versao:
 
@@ -113,6 +114,20 @@ bucket: video-pages
 
 Nao ha upload de capa/poster separado.
 O painel do CRM deve permitir selecionar video ja existente no bucket, evitando novo upload quando o arquivo ja estiver carregado.
+
+Pipeline HLS local da VPS:
+
+```text
+/opt/front-julia/video-streaming/scripts/process-hls.sh
+/opt/front-julia/video-streaming/incoming
+/opt/front-julia/video-streaming/library
+```
+
+URL publica de HLS:
+
+```text
+https://apifront.juliaferreiraceo.com.br/hls/<slug>/master.m3u8
+```
 
 O prompt para construir o painel no projeto do CRM esta em:
 
