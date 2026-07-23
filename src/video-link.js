@@ -35,6 +35,11 @@ function isInAppBrowser() {
   return /Instagram|FBAN|FBAV|FB_IAB|Line\/|TikTok|Twitter|LinkedInApp/i.test(navigator.userAgent);
 }
 
+function isInstagramAndroidWebView() {
+  const profile = getBrowserProfile();
+  return profile.is_instagram && profile.is_android_webview;
+}
+
 function getBrowserProfile() {
   const ua = navigator.userAgent;
   const isInstagram = /Instagram/i.test(ua);
@@ -376,7 +381,7 @@ function enableEmbedDirectPlayback() {
 
 function unlockReadyState() {
   if (!page || isPlaying) return;
-  setState("ready");
+  setState(isEmbedMode && isInstagramAndroidWebView() ? "instagram-direct" : "ready");
   playButton.disabled = false;
 }
 

@@ -92,6 +92,10 @@ a {
   pointer-events: none;
 }
 
+.video-shell[data-state="instagram-direct"] .bunny-embed {
+  pointer-events: auto;
+}
+
 .video-shell[data-state="playing"] .locked-video,
 .video-shell[data-state="completed"] .locked-video {
   filter: none;
@@ -114,6 +118,11 @@ a {
 .video-shell[data-state="completed"] .video-scrim {
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
+}
+
+.video-shell[data-state="instagram-direct"] .video-scrim,
+.video-shell[data-state="instagram-direct"] .play-button {
   pointer-events: none;
 }
 
