@@ -4,6 +4,10 @@ body.immersive-v5 {
   background: #070706;
 }
 
+.immersive-v5 .launch-bar[hidden] {
+  display: none !important;
+}
+
 .immersive-v5 .launch-bar {
   min-height: 64px;
   gap: 14px;

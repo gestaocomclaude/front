@@ -136,11 +136,13 @@ async function loadPage() {
     finalCta.textContent = page.cta_label || "continuar";
     finalCta.href = page.cta_url;
     preloadVideoAssets(page);
-    await setupVideoSource(page);
+    const sourceMode = await setupVideoSource(page);
     video.controls = false;
     video.defaultPlaybackRate = 1;
     video.playbackRate = 1;
-    video.load();
+    if (sourceMode !== "hls-js") {
+      video.load();
+    }
     setState("ready");
     playButton.disabled = false;
     sendEvent("page_view", { once: true, beacon: true });
@@ -173,10 +175,6 @@ function preloadVideoAssets(videoPage) {
     link.as = url.includes(".m3u8") || url.includes(".ts") ? "fetch" : "video";
     link.crossOrigin = "anonymous";
     document.head.appendChild(link);
-
-    if (link.as === "fetch") {
-      fetch(url, { mode: "cors", cache: "force-cache" }).catch(() => {});
-    }
   });
 }
 
@@ -190,26 +188,32 @@ async function setupVideoSource(videoPage) {
 
   if (isHls && video.canPlayType("application/vnd.apple.mpegurl")) {
     video.src = sourceUrl;
-    return;
+    return "native-hls";
   }
 
   if (isHls) {
     if (!Hls.isSupported()) {
       video.src = sourceUrl;
-      return;
+      return "fallback";
     }
 
     hls = new Hls({
       enableWorker: true,
       lowLatencyMode: false,
       backBufferLength: 30,
+      startPosition: 0,
     });
-    hls.loadSource(sourceUrl);
+    hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+      hls?.loadSource(sourceUrl);
+    });
+    hls.on(Hls.Events.MANIFEST_PARSED, unlockReadyState);
+    hls.on(Hls.Events.FRAG_BUFFERED, unlockReadyState);
     hls.attachMedia(video);
-    return;
+    return "hls-js";
   }
 
   video.src = sourceUrl;
+  return "file";
 }
 
 function unlockReadyState() {
@@ -223,6 +227,7 @@ async function playVideo() {
 
   try {
     playButton.disabled = true;
+    hls?.startLoad?.(0);
     video.playbackRate = 1;
     await video.play();
     isPlaying = true;

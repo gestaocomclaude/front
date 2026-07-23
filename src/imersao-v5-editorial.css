@@ -31,6 +31,10 @@ body.immersive-v5-editorial.modal-open {
   overflow: hidden;
 }
 
+.immersive-v5-editorial .launch-bar[hidden] {
+  display: none !important;
+}
+
 .immersive-v5-editorial .launch-bar {
   min-height: 58px;
   gap: 14px;

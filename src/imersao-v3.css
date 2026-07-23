@@ -31,6 +31,10 @@ body.immersive-v3 {
 
 body.immersive-v3.modal-open { overflow: hidden; }
 
+.immersive-v3 .launch-bar[hidden] {
+  display: none !important;
+}
+
 .immersive-v3 .launch-bar {
   min-height: 42px;
   padding: 9px 18px 10px;
