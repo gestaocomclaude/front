@@ -15,6 +15,24 @@
     <link rel="dns-prefetch" href="https://apifront.juliaferreiraceo.com.br" />
     <link rel="icon" type="image/svg+xml" href="/assets/brand/claude-logo.svg" />
     <link rel="stylesheet" href="/src/video-link.css" />
+    <script>
+      (function () {
+        var configuredApiBase = "%VITE_BACKEND_API_BASE_URL%";
+        var apiBase = configuredApiBase && configuredApiBase.charAt(0) !== "%"
+          ? configuredApiBase.replace(/\/$/, "")
+          : "";
+        var match = window.location.pathname.match(/^\/assistir\/([a-z0-9-]+)\/?$/);
+        var querySlug = new URLSearchParams(window.location.search).get("slug");
+        var slug = ((match && match[1]) || querySlug || "").trim().toLowerCase();
+
+        window.__ECC_VIDEO_API_BASE__ = apiBase;
+        if (!apiBase || !slug) return;
+
+        window.__ECC_VIDEO_PAGE_PROMISE__ = fetch(apiBase + "/api/video-pages/" + encodeURIComponent(slug), {
+          headers: { "Accept": "application/json" }
+        });
+      })();
+    </script>
     <script type="module" src="/src/video-link.js"></script>
   </head>
   <body class="video-link-page">

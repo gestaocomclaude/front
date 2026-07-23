@@ -1,6 +1,6 @@
-import Hls from "hls.js";
+import Hls from "hls.js/dist/hls.light.mjs";
 
-const backendApiBaseUrl = import.meta.env.VITE_BACKEND_API_BASE_URL || "";
+const backendApiBaseUrl = window.__ECC_VIDEO_API_BASE__ || import.meta.env.VITE_BACKEND_API_BASE_URL || "";
 const apiBase = backendApiBaseUrl.replace(/\/$/, "");
 const sessionStorageKey = "ecc_session_id";
 
@@ -123,9 +123,7 @@ async function loadPage() {
   }
 
   try {
-    const response = await fetch(`${apiBase}/api/video-pages/${encodeURIComponent(slug)}`, {
-      headers: { "Accept": "application/json" },
-    });
+    const response = await getVideoPageResponse(slug);
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok || !data.page) {
@@ -137,6 +135,7 @@ async function loadPage() {
     playButton.lastChild.textContent = page.play_button_label || "clique para assistir";
     finalCta.textContent = page.cta_label || "continuar";
     finalCta.href = page.cta_url;
+    preloadVideoAssets(page);
     await setupVideoSource(page);
     video.controls = false;
     video.defaultPlaybackRate = 1;
@@ -149,6 +148,36 @@ async function loadPage() {
   } catch (error) {
     showUnavailable(error instanceof Error ? error.message : "Video nao encontrado");
   }
+}
+
+function getVideoPageResponse(slug) {
+  if (window.__ECC_VIDEO_PAGE_PROMISE__) {
+    const promise = window.__ECC_VIDEO_PAGE_PROMISE__;
+    window.__ECC_VIDEO_PAGE_PROMISE__ = null;
+    return promise;
+  }
+
+  return fetch(`${apiBase}/api/video-pages/${encodeURIComponent(slug)}`, {
+    headers: { "Accept": "application/json" },
+  });
+}
+
+function preloadVideoAssets(videoPage) {
+  const urls = Array.isArray(videoPage.preload_urls) ? videoPage.preload_urls : [];
+  urls.slice(0, 2).forEach((url) => {
+    if (!url) return;
+
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.href = url;
+    link.as = url.includes(".m3u8") || url.includes(".ts") ? "fetch" : "video";
+    link.crossOrigin = "anonymous";
+    document.head.appendChild(link);
+
+    if (link.as === "fetch") {
+      fetch(url, { mode: "cors", cache: "force-cache" }).catch(() => {});
+    }
+  });
 }
 
 async function setupVideoSource(videoPage) {
