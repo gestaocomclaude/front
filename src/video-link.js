@@ -380,6 +380,12 @@ function unlockReadyState() {
   playButton.disabled = false;
 }
 
+function requestEmbedPlay() {
+  embedPlayer?.setVolume?.(100);
+  embedPlayer?.unmute?.();
+  embedPlayer?.play?.();
+}
+
 async function playVideo() {
   if (!video || !page) return;
 
@@ -389,7 +395,7 @@ async function playVideo() {
       sendEvent("player_play_command", { once: true });
       playRetryDelays.forEach((delay) => {
         window.setTimeout(() => {
-          if (!isPlaying && !isCompleted) embedPlayer?.play?.();
+          if (!isPlaying && !isCompleted) requestEmbedPlay();
         }, delay);
       });
 
