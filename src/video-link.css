@@ -87,6 +87,10 @@ a {
   pointer-events: none;
 }
 
+.video-shell[data-state="embed-fallback"] .bunny-embed {
+  pointer-events: auto;
+}
+
 .video-shell[data-state="playing"] .locked-video,
 .video-shell[data-state="completed"] .locked-video {
   filter: none;
@@ -104,6 +108,7 @@ a {
 }
 
 .video-shell[data-state="playing"] .video-scrim,
+.video-shell[data-state="embed-fallback"] .video-scrim,
 .video-shell[data-state="completed"] .video-scrim {
   opacity: 0;
   visibility: hidden;

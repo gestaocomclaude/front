@@ -20,9 +20,15 @@ let embedIframe = null;
 let embedPlayer = null;
 let embedDuration = null;
 let embedCurrentTime = null;
+let embedPlayFallbackTimer = null;
+let isEmbedMode = false;
 
 function setState(state) {
   shell?.setAttribute("data-state", state);
+}
+
+function isInAppBrowser() {
+  return /Instagram|FBAN|FBAV|FB_IAB|Line\/|TikTok|Twitter|LinkedInApp/i.test(navigator.userAgent);
 }
 
 function getSlug() {
@@ -214,6 +220,9 @@ async function setupVideoSource(videoPage) {
   embedIframe = null;
   embedDuration = null;
   embedCurrentTime = null;
+  window.clearTimeout(embedPlayFallbackTimer);
+  embedPlayFallbackTimer = null;
+  isEmbedMode = false;
   video.removeAttribute("src");
   video.hidden = false;
 
@@ -253,6 +262,7 @@ async function setupVideoSource(videoPage) {
 }
 
 function setupEmbedSource(sourceUrl) {
+  isEmbedMode = true;
   const uniqueUrl = new URL(sourceUrl);
   uniqueUrl.searchParams.set("preload", "true");
   uniqueUrl.searchParams.set("responsive", "true");
@@ -270,7 +280,7 @@ function setupEmbedSource(sourceUrl) {
   video.insertAdjacentElement("afterend", embedIframe);
 
   if (!window.playerjs?.Player) {
-    unlockReadyState();
+    enableEmbedDirectPlayback();
     return;
   }
 
@@ -282,6 +292,8 @@ function setupEmbedSource(sourceUrl) {
     unlockReadyState();
   });
   embedPlayer.on("play", () => {
+    window.clearTimeout(embedPlayFallbackTimer);
+    embedPlayFallbackTimer = null;
     isPlaying = true;
     setState("playing");
     sendEvent("play_started", { once: true });
@@ -292,6 +304,20 @@ function setupEmbedSource(sourceUrl) {
     trackProgress();
   });
   embedPlayer.on("ended", completeVideo);
+}
+
+function enableEmbedDirectPlayback() {
+  if (!embedIframe || isPlaying) return;
+  setState("embed-fallback");
+  playButton.disabled = false;
+}
+
+function refreshEmbedAutoplayUrl() {
+  if (!embedIframe) return;
+  const autoplayUrl = new URL(embedIframe.src);
+  if (autoplayUrl.searchParams.get("autoplay") === "true") return;
+  autoplayUrl.searchParams.set("autoplay", "true");
+  embedIframe.src = autoplayUrl.toString();
 }
 
 function unlockReadyState() {
@@ -305,8 +331,14 @@ async function playVideo() {
 
   try {
     playButton.disabled = true;
-    if (embedPlayer) {
-      embedPlayer.play();
+    if (isEmbedMode) {
+      refreshEmbedAutoplayUrl();
+      embedPlayer?.play?.();
+
+      window.clearTimeout(embedPlayFallbackTimer);
+      embedPlayFallbackTimer = window.setTimeout(() => {
+        if (!isPlaying) enableEmbedDirectPlayback();
+      }, isInAppBrowser() ? 900 : 1800);
       return;
     }
     hls?.startLoad?.(0);
