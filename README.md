@@ -18,6 +18,7 @@ Landing page estatica em Vite para `https://juliaferreiraceo.com.br`.
 - `/imersao-empresa-com-claude-v4/`
 - `/imersao-empresa-com-claude-v5/`
 - `/rotina-anti-caos/`
+- `/assistir/:slug/`
 
 ## Analytics
 
@@ -70,6 +71,54 @@ ${VITE_BACKEND_API_BASE_URL}/api/page-views
 ```
 
 Esses eventos sao gravados no Supabase em `ecc.page_views`.
+
+## Video Links
+
+A rota publica dinamica de videos e:
+
+```text
+/assistir/:slug/
+```
+
+O front carrega a configuracao pelo endpoint:
+
+```text
+${VITE_BACKEND_API_BASE_URL}/api/video-pages/:slug
+```
+
+O video fica em formato vertical, pre-carrega antes do clique, usa o primeiro frame como capa turva e libera o CTA final apenas apos o evento `ended`.
+O texto do botao inicial vem de `ecc.video_pages.play_button_label`, com fallback `clique para assistir`.
+
+Eventos e metricas sao registrados desde a primeira versao:
+
+```text
+${VITE_BACKEND_API_BASE_URL}/api/video-events
+${VITE_BACKEND_API_BASE_URL}/api/video-metrics/:slug
+```
+
+Tabelas no Supabase online, schema `ecc`:
+
+```text
+video_pages
+video_events
+video_sessions
+```
+
+Storage de arquivos de video:
+
+```text
+https://bd.trilhadogpt.com
+bucket: video-pages
+```
+
+Nao ha upload de capa/poster separado.
+O painel do CRM deve permitir selecionar video ja existente no bucket, evitando novo upload quando o arquivo ja estiver carregado.
+
+O prompt para construir o painel no projeto do CRM esta em:
+
+```text
+docs/crm-video-panel-prompt.md
+```
 
 Variaveis publicas para build no provedor de deploy:
 

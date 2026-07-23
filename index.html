@@ -23,13 +23,17 @@
         "/imersao-empresa-com-claude-v3",
         "/imersao-empresa-com-claude-v4",
         "/imersao-empresa-com-claude-v5",
-        "/rotina-anti-caos"
+        "/rotina-anti-caos",
+        "/assistir"
       ];
+      var assistirMatch = window.location.pathname.match(/^\/assistir\/([a-z0-9-]+)\/?$/);
 
       if (isValidRootPath) {
         window.location.replace("/imersao-empresa-com-claude-v1/");
       } else if (trailingSlashPaths.includes(window.location.pathname)) {
         window.location.replace(window.location.pathname + "/" + window.location.search + window.location.hash);
+      } else if (assistirMatch) {
+        window.location.replace("/assistir/?slug=" + encodeURIComponent(assistirMatch[1]) + window.location.search.replace(/^\?/, "&") + window.location.hash);
       } else {
         document.documentElement.setAttribute("data-route-state", "not-found");
         document.addEventListener("DOMContentLoaded", function () {

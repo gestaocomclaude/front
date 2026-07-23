@@ -1,4 +1,14 @@
 {
+  "rewrites": [
+    {
+      "source": "/assistir/:slug",
+      "destination": "/assistir/"
+    },
+    {
+      "source": "/assistir/:slug/",
+      "destination": "/assistir/"
+    }
+  ],
   "redirects": [
     {
       "source": "/",

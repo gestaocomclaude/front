@@ -1,0 +1,226 @@
+const backendApiBaseUrl = import.meta.env.VITE_BACKEND_API_BASE_URL || "";
+const apiBase = backendApiBaseUrl.replace(/\/$/, "");
+const sessionStorageKey = "ecc_session_id";
+
+const shell = document.querySelector(".video-shell");
+const video = document.querySelector("[data-video]");
+const playButton = document.querySelector("[data-play-button]");
+const finalCta = document.querySelector("[data-final-cta]");
+const title = document.querySelector("[data-title]");
+const statusText = document.querySelector("[data-status]");
+const unavailable = document.querySelector("[data-unavailable]");
+const stage = document.querySelector(".video-stage");
+const progressBar = document.querySelector("[data-progress-bar]");
+
+const sentEvents = new Set();
+let page = null;
+let isPlaying = false;
+
+function setState(state) {
+  shell?.setAttribute("data-state", state);
+}
+
+function getSlug() {
+  const pathMatch = window.location.pathname.match(/^\/assistir\/([a-z0-9-]+)\/?$/);
+  const querySlug = new URLSearchParams(window.location.search).get("slug");
+  return (pathMatch?.[1] || querySlug || "").trim().toLowerCase();
+}
+
+function getSessionId() {
+  try {
+    const existing = window.localStorage.getItem(sessionStorageKey);
+    if (existing) return existing;
+
+    const id = window.crypto?.randomUUID?.()
+      || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    window.localStorage.setItem(sessionStorageKey, id);
+    return id;
+  } catch {
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
+function getUtms() {
+  const params = new URLSearchParams(window.location.search);
+  const utms = {};
+
+  for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
+    const value = params.get(key);
+    if (value) utms[key] = value;
+  }
+
+  return utms;
+}
+
+function buildEventPayload(eventType) {
+  const utms = getUtms();
+  const duration = Number.isFinite(video?.duration) ? video.duration : null;
+  const currentTime = Number.isFinite(video?.currentTime) ? video.currentTime : null;
+  const progress = duration && currentTime ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : null;
+
+  return {
+    slug: page?.slug || getSlug(),
+    event_type: eventType,
+    session_id: getSessionId(),
+    page_url: window.location.href,
+    referrer: document.referrer || null,
+    utm_source: utms.utm_source || null,
+    utm_medium: utms.utm_medium || null,
+    utm_campaign: utms.utm_campaign || null,
+    utm_content: utms.utm_content || null,
+    utm_term: utms.utm_term || null,
+    watched_seconds: currentTime,
+    video_duration: duration,
+    progress_percent: progress,
+    viewport_width: window.innerWidth,
+    viewport_height: window.innerHeight,
+    user_agent: navigator.userAgent,
+    utms,
+    metadata: {
+      title: document.title,
+      href: window.location.href,
+      reduced_motion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    },
+  };
+}
+
+function sendEvent(eventType, options = {}) {
+  if (!apiBase || !page?.slug) return;
+  if (options.once && sentEvents.has(eventType)) return;
+  if (options.once) sentEvents.add(eventType);
+
+  const body = JSON.stringify(buildEventPayload(eventType));
+  const endpoint = `${apiBase}/api/video-events`;
+
+  if (options.beacon && navigator.sendBeacon) {
+    const sent = navigator.sendBeacon(endpoint, new Blob([body], { type: "text/plain" }));
+    if (sent) return;
+  }
+
+  fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    keepalive: Boolean(options.keepalive),
+  }).catch(() => {});
+}
+
+function showUnavailable(message = "Video nao encontrado") {
+  document.title = "Video indisponivel";
+  stage.hidden = true;
+  unavailable.hidden = false;
+  unavailable.querySelector("h1").textContent = message;
+  setState("unavailable");
+}
+
+async function loadPage() {
+  const slug = getSlug();
+
+  if (!slug || !apiBase) {
+    showUnavailable(!apiBase ? "Configuracao indisponivel" : "Video nao encontrado");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${apiBase}/api/video-pages/${encodeURIComponent(slug)}`, {
+      headers: { "Accept": "application/json" },
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data.page) {
+      throw new Error(data.message || "Video nao encontrado");
+    }
+
+    page = data.page;
+    document.title = `${page.title} | Julia Ferreira`;
+    title.textContent = page.title;
+    playButton.lastChild.textContent = page.play_button_label || "clique para assistir";
+    statusText.textContent = "Clique para assistir. O proximo passo aparece quando o video terminar.";
+    finalCta.textContent = page.cta_label || "continuar";
+    finalCta.href = page.cta_url;
+    video.src = page.video_url;
+    video.controls = false;
+    video.defaultPlaybackRate = 1;
+    video.playbackRate = 1;
+    video.load();
+    setState("loading");
+    sendEvent("page_view", { once: true, beacon: true });
+    sendEvent("video_preload_started", { once: true });
+  } catch (error) {
+    showUnavailable(error instanceof Error ? error.message : "Video nao encontrado");
+  }
+}
+
+function unlockReadyState() {
+  if (!page || isPlaying) return;
+  setState("ready");
+  playButton.disabled = false;
+}
+
+async function playVideo() {
+  if (!video || !page || playButton.disabled) return;
+
+  try {
+    video.playbackRate = 1;
+    await video.play();
+    isPlaying = true;
+    setState("playing");
+    sendEvent("play_started", { once: true });
+  } catch {
+    statusText.textContent = "Toque novamente para iniciar o video.";
+  }
+}
+
+function enforcePlaybackRate() {
+  if (!video) return;
+  if (video.playbackRate !== 1) {
+    video.playbackRate = 1;
+  }
+}
+
+function trackProgress() {
+  if (!video?.duration) return;
+  const progress = (video.currentTime / video.duration) * 100;
+  updateProgressBar(progress);
+
+  if (progress >= 25) sendEvent("progress_25", { once: true });
+  if (progress >= 50) sendEvent("progress_50", { once: true });
+  if (progress >= 75) sendEvent("progress_75", { once: true });
+}
+
+function updateProgressBar(progress) {
+  if (!progressBar) return;
+  const safeProgress = Math.min(100, Math.max(0, Number(progress) || 0));
+  progressBar.style.width = `${safeProgress}%`;
+}
+
+function completeVideo() {
+  setState("completed");
+  updateProgressBar(100);
+  finalCta.hidden = false;
+  statusText.textContent = "Video concluido. O proximo passo esta liberado.";
+  sendEvent("progress_75", { once: true, keepalive: true });
+  sendEvent("video_completed", { once: true, keepalive: true });
+  sendEvent("cta_revealed", { once: true, keepalive: true });
+}
+
+function handleCtaClick(event) {
+  event.preventDefault();
+  const href = finalCta.href;
+  sendEvent("cta_clicked", { once: true, beacon: true, keepalive: true });
+  window.setTimeout(() => {
+    window.location.assign(href);
+  }, 120);
+}
+
+video?.addEventListener("loadeddata", unlockReadyState);
+video?.addEventListener("loadedmetadata", unlockReadyState);
+video?.addEventListener("canplay", unlockReadyState);
+video?.addEventListener("ratechange", enforcePlaybackRate);
+video?.addEventListener("timeupdate", trackProgress);
+video?.addEventListener("ended", completeVideo);
+video?.addEventListener("contextmenu", (event) => event.preventDefault());
+playButton?.addEventListener("click", playVideo);
+finalCta?.addEventListener("click", handleCtaClick);
+
+loadPage();

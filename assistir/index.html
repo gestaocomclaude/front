@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-5SJWHNCX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assistir video | Julia Ferreira</title>
+    <meta name="description" content="Assista ao video para liberar o proximo passo." />
+    <link rel="icon" type="image/svg+xml" href="/assets/brand/claude-logo.svg" />
+    <link rel="stylesheet" href="/src/video-link.css" />
+    <script type="module" src="/src/video-link.js"></script>
+  </head>
+  <body class="video-link-page">
+    <main class="video-shell" data-state="loading">
+      <section class="video-stage" aria-live="polite">
+        <div class="video-card">
+          <div class="video-frame" data-video-frame>
+            <video
+              class="locked-video"
+              data-video
+              preload="auto"
+              playsinline
+              webkit-playsinline
+              disablepictureinpicture
+              controlslist="nodownload noplaybackrate noremoteplayback"
+            ></video>
+
+            <div class="video-scrim" data-video-scrim>
+              <button class="play-button" type="button" data-play-button disabled>
+                <span aria-hidden="true"></span>
+                clique para assistir
+              </button>
+            </div>
+
+            <div class="video-loading" data-loading>carregando video...</div>
+            <div class="video-progress" aria-hidden="true">
+              <div class="video-progress__bar" data-progress-bar></div>
+            </div>
+          </div>
+
+          <div class="video-copy">
+            <p class="eyebrow">video exclusivo</p>
+            <h1 data-title>Preparando seu video</h1>
+            <p data-status>Estamos carregando o conteudo para tocar mais rapido quando voce clicar.</p>
+          </div>
+
+          <a class="final-cta" data-final-cta href="#" hidden rel="noopener">
+            continuar
+          </a>
+        </div>
+      </section>
+
+      <section class="unavailable" data-unavailable hidden>
+        <p class="eyebrow">indisponivel</p>
+        <h1>Video nao encontrado</h1>
+        <p>Confira se o endereco esta correto ou tente novamente mais tarde.</p>
+      </section>
+    </main>
+  </body>
+</html>

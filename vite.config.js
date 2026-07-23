@@ -13,6 +13,7 @@ export default defineConfig({
         imersaoV4: resolve(__dirname, "imersao-empresa-com-claude-v4/index.html"),
         imersaoV5: resolve(__dirname, "imersao-empresa-com-claude-v5/index.html"),
         rotinaAntiCaos: resolve(__dirname, "rotina-anti-caos/index.html"),
+        assistir: resolve(__dirname, "assistir/index.html"),
       },
     },
   },
