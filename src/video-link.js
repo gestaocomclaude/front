@@ -8,8 +8,6 @@ const shell = document.querySelector(".video-shell");
 const video = document.querySelector("[data-video]");
 const playButton = document.querySelector("[data-play-button]");
 const finalCta = document.querySelector("[data-final-cta]");
-const title = document.querySelector("[data-title]");
-const statusText = document.querySelector("[data-status]");
 const unavailable = document.querySelector("[data-unavailable]");
 const stage = document.querySelector(".video-stage");
 const progressBar = document.querySelector("[data-progress-bar]");
@@ -136,9 +134,7 @@ async function loadPage() {
 
     page = data.page;
     document.title = `${page.title} | Julia Ferreira`;
-    title.textContent = page.title;
     playButton.lastChild.textContent = page.play_button_label || "clique para assistir";
-    statusText.textContent = "Clique para assistir. O proximo passo aparece quando o video terminar.";
     finalCta.textContent = page.cta_label || "continuar";
     finalCta.href = page.cta_url;
     await setupVideoSource(page);
@@ -198,14 +194,12 @@ async function playVideo() {
 
   try {
     playButton.disabled = true;
-    statusText.textContent = "Iniciando video...";
     video.playbackRate = 1;
     await video.play();
     isPlaying = true;
     setState("playing");
     sendEvent("play_started", { once: true });
   } catch {
-    statusText.textContent = "Toque novamente para iniciar o video.";
     playButton.disabled = false;
   }
 }
@@ -237,7 +231,6 @@ function completeVideo() {
   setState("completed");
   updateProgressBar(100);
   finalCta.hidden = false;
-  statusText.textContent = "Video concluido. O proximo passo esta liberado.";
   sendEvent("progress_75", { once: true, keepalive: true });
   sendEvent("video_completed", { once: true, keepalive: true });
   sendEvent("cta_revealed", { once: true, keepalive: true });

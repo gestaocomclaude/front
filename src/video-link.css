@@ -50,7 +50,7 @@ a {
 
 .video-card {
   display: grid;
-  gap: 18px;
+  gap: 14px;
   width: 100%;
 }
 
@@ -198,10 +198,6 @@ a {
   transition: width 100ms linear;
 }
 
-.video-copy {
-  padding: 0 4px;
-}
-
 .eyebrow {
   margin: 0 0 8px;
   color: var(--accent-dark);
@@ -211,7 +207,6 @@ a {
   text-transform: uppercase;
 }
 
-.video-copy h1,
 .unavailable h1 {
   margin: 0;
   color: var(--ink);
@@ -220,7 +215,6 @@ a {
   letter-spacing: 0;
 }
 
-.video-copy p:not(.eyebrow),
 .unavailable p:not(.eyebrow) {
   margin: 10px 0 0;
   color: var(--graphite);
